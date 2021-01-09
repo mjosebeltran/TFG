@@ -1,0 +1,1626 @@
+---
+title: "Influencia Situacion Laboral"
+author: "Maria Jose Beltran"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(plyr)
+library(cluster)
+library(MASS)
+library(readxl)
+library(gridExtra)
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE, include=FALSE}
+datosValencia <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx") 
+
+datosUIB <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", n_max = 52)
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+#datos Universidad de Valencia y Universidad Catolica de Valencia
+
+datosValencia_T1 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", range = cell_cols("AN:BT")) %>% 
+  dplyr::rename(Pregunta_1 = 'T1TECA1', Pregunta_2 = 'T1TECA2', Pregunta_3 = 'T1TECA3', Pregunta_4 = 'T1TECA4', Pregunta_5 = 'T1TECA5', Pregunta_6 = 'T1TECA6', Pregunta_7 = 'T1TECA7', Pregunta_8 = 'T1TECA8', Pregunta_9 = 'T1TECA9', Pregunta_10 = 'T1TECA10', Pregunta_11 =  'T1TECA11', Pregunta_12 = 'T1TECA12', Pregunta_13 = 'T1TECA13' , Pregunta_14 = 'T1TECA14', Pregunta_15 = 'T1TECA15', Pregunta_16 = 'T1TECA16', Pregunta_17 = 'T1TECA17',Pregunta_18 = 'T1TECA18', Pregunta_19 = 'T1TECA19', Pregunta_20 = 'T1TECA20', Pregunta_21 = 'T1TECA21',Pregunta_22 = 'T1TECA22', Pregunta_23 = 'T1TECA23',Pregunta_24 = 'T1TECA24', Pregunta_25 = 'T1TECA25', Pregunta_26 = 'T1TECA26', Pregunta_27 = 'T1TECA27', Pregunta_28 = 'T1TECA28', Pregunta_29 = 'T1TECA29', Pregunta_30 = 'T1TECA30', Pregunta_31 = 'T1TECA31', Pregunta_32 = 'T1TECA32', Pregunta_33 = 'T1TECA33')
+
+datosValencia_T2 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", range = cell_cols("CS:DY")) %>% 
+  dplyr::rename(Pregunta_1 = 'T2TECA1', Pregunta_2 = 'T2TECA2', Pregunta_3 = 'T2TECA3',Pregunta_4 = 'T2TECA4', Pregunta_5 = 'T2TECA5', Pregunta_6 = 'T2TECA6', Pregunta_7 = 'T2TECA7', Pregunta_8 = 'T2TECA8', Pregunta_9 = 'T2TECA9', Pregunta_10 = 'T2TECA10', Pregunta_11 =  'T2TECA11', Pregunta_12 = 'T2TECA12', Pregunta_13 = 'T2TECA13', Pregunta_14 = 'T2TECA14', Pregunta_15 = 'T2TECA15', Pregunta_16 = 'T2TECA16', Pregunta_17 = 'T2TECA17',Pregunta_18 = 'T2TECA18', Pregunta_19 = 'T2TECA19', Pregunta_20 = 'T2TECA20', Pregunta_21 = 'T2TECA21',Pregunta_22 = 'T2TECA22', Pregunta_23 = 'T2TECA23',Pregunta_24 = 'T2TECA24', Pregunta_25 = 'T2TECA25', Pregunta_26 = 'T2TECA26', Pregunta_27 = 'T2TECA27', Pregunta_28 = 'T2TECA28', Pregunta_29 = 'T2TECA29', Pregunta_30 = 'T2TECA30', Pregunta_31 = 'T2TECA31', Pregunta_32 = 'T2TECA32', Pregunta_33 = 'T2TECA33')
+
+datosValencia_T3 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", range = cell_cols("EX:GD")) %>% 
+  dplyr::rename(Pregunta_1 = 'T3TECA1', Pregunta_2 = 'T3TECA2', Pregunta_3 = 'T3TECA3',Pregunta_4 = 'T3TECA4', Pregunta_5 = 'T3TECA5', Pregunta_6 = 'T3TECA6', Pregunta_7 = 'T3TECA7', Pregunta_8 = 'T3TECA8', Pregunta_9 = 'T3TECA9', Pregunta_10 = 'T3TECA10', Pregunta_11 =  'T3TECA11', Pregunta_12 = 'T3TECA12', Pregunta_13 = 'T3TECA13', Pregunta_14 = 'T3TECA14', Pregunta_15 = 'T3TECA15', Pregunta_16 = 'T3TECA16', Pregunta_17 = 'T3TECA17',Pregunta_18 = 'T3TECA18', Pregunta_19 = 'T3TECA19', Pregunta_20 = 'T3TECA20', Pregunta_21 = 'T3TECA21',Pregunta_22 = 'T3TECA22', Pregunta_23 = 'T3TECA23',Pregunta_24 = 'T3TECA24', Pregunta_25 = 'T3TECA25', Pregunta_26 = 'T3TECA26', Pregunta_27 = 'T3TECA27', Pregunta_28 = 'T3TECA28', Pregunta_29 = 'T3TECA29', Pregunta_30 = 'T3TECA30', Pregunta_31 = 'T3TECA31', Pregunta_32 = 'T3TECA32', Pregunta_33 = 'T3TECA33')
+```
+
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+#daots UIB 4to CURSO
+
+datosUIB_T1 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", range = cell_cols("AN:BT")) %>% 
+  dplyr::rename(Pregunta_1 = '1TECA1', Pregunta_2 = '1TECA2', Pregunta_3 = '1TECA3',Pregunta_4 = '1TECA4', Pregunta_5 = '1TECA5', Pregunta_6 = '1TECA6', Pregunta_7 = '1TECA7', Pregunta_8 = '1TECA8', Pregunta_9 = '1TECA9', Pregunta_10 = '1TECA10', Pregunta_11 =  '1TECA11', Pregunta_12 = '1TECA12', Pregunta_13 = '1TECA13', Pregunta_14 = '1TECA14', Pregunta_15 = '1TECA15', Pregunta_16 = '1TECA16', Pregunta_17 = '1TECA17',Pregunta_18 = '1TECA18', Pregunta_19 = '1TECA19', Pregunta_20 = '1TECA20', Pregunta_21 = '1TECA21',Pregunta_22 = '1TECA22', Pregunta_23 = '1TECA23',Pregunta_24 = '1TECA24', Pregunta_25 = '1TECA25', Pregunta_26 = '1TECA26', Pregunta_27 = '1TECA27', Pregunta_28 = '1TECA28', Pregunta_29 = '1TECA29', Pregunta_30 = '1TECA30', Pregunta_31 = '1TECA31', Pregunta_32 = '1TECA32', Pregunta_33 = '1TECA33')
+
+datosUIB_T2 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", range = cell_cols("DI:EO"))  %>%
+  dplyr::rename(Pregunta_1 = '1TECA141', Pregunta_2 = '1TECA242', Pregunta_3 = '1TECA343', Pregunta_4 = '1TECA444', Pregunta_5 = '1TECA545',Pregunta_6 =  '1TECA646', Pregunta_7 = '1TECA747', Pregunta_8 = '1TECA848',Pregunta_9 = '1TECA949', Pregunta_10 = '1TECA1050',Pregunta_11 =  '1TECA1151', Pregunta_12 = '1TECA1252', Pregunta_13 = '1TECA1353', Pregunta_14 = '1TECA1454', Pregunta_15 = '1TECA1555', Pregunta_16 = '1TECA1656', Pregunta_17 = '1TECA1757', Pregunta_18 = '1TECA1858', Pregunta_19 = '1TECA1959', Pregunta_20 = '1TECA2060', Pregunta_21 = '1TECA2161',Pregunta_22 =  '1TECA2262', Pregunta_23 = '1TECA2363', Pregunta_24 = '1TECA2464', Pregunta_25 = '1TECA2565', Pregunta_26 = '1TECA2666', Pregunta_27 = '1TECA2767', Pregunta_28 = '1TECA2868', Pregunta_29 = '1TECA2969',Pregunta_30 =  '1TECA3070', Pregunta_31= '1TECA3171', Pregunta_32 = '1TECA3272', Pregunta_33 = '1TECA3373')
+
+datosUIB_T3 <-read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", range = cell_cols("GD:HJ")) %>%
+  dplyr::rename(Pregunta_1 = '1TECA1113', Pregunta_2 = '1TECA2114', Pregunta_3 = '1TECA3115', Pregunta_4 = '1TECA4116', Pregunta_5 = '1TECA5117', Pregunta_6 = '1TECA6118', Pregunta_7 = '1TECA7119', Pregunta_8 = '1TECA8120', Pregunta_9 = '1TECA9121', Pregunta_10 =  '1TECA10122', Pregunta_11 = '1TECA11123', Pregunta_12 = '1TECA12124',Pregunta_13 = '1TECA13125', Pregunta_14 = '1TECA14126', Pregunta_15 = '1TECA15127', Pregunta_16 = '1TECA16128', Pregunta_17 = '1TECA17129', Pregunta_18 = '1TECA18130', Pregunta_19 = '1TECA19131', Pregunta_20 = '1TECA20132', Pregunta_21 = '1TECA21133', Pregunta_22 = '1TECA22134', Pregunta_23 = '1TECA23135', Pregunta_24 = '1TECA24136', Pregunta_25 = '1TECA25137', Pregunta_26 = '1TECA26138',Pregunta_27 =  '1TECA27139', Pregunta_28 = '1TECA28140', Pregunta_29 = '1TECA29141', Pregunta_30 ='1TECA30142', Pregunta_31 = '1TECA31143', Pregunta_32 = '1TECA32144',Pregunta_33 = '1TECA33145')
+```
+
+# Descripcion variable "situacion laboral"
+
+```{r echo=TRUE, include=FALSE}
+# A??adimos la variale SEXO
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$SITLAB) %>%
+  dplyr::rename(Situacion_laboral = 'datosValencia$SITLAB')
+
+datosValencia_T1$Situacion_laboral[datosValencia_T1$Situacion_laboral == "0"] <- "NO trabaja"
+datosValencia_T1$Situacion_laboral[datosValencia_T1$Situacion_laboral == "1"] <- "Trabaja"
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$SITLAB) %>%
+  dplyr::rename(Situacion_laboral = 'datosValencia$SITLAB')
+
+datosValencia_T2$Situacion_laboral[datosValencia_T2$Situacion_laboral == "0"] <- "NO trabaja"
+datosValencia_T2$Situacion_laboral[datosValencia_T2$Situacion_laboral == "1"] <- "Trabaja"
+
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$SITLAB) %>%
+  dplyr::rename(Situacion_laboral = 'datosValencia$SITLAB')
+
+datosValencia_T3$Situacion_laboral[datosValencia_T3$Situacion_laboral == "0"] <- "NO trabaja"
+datosValencia_T3$Situacion_laboral[datosValencia_T3$Situacion_laboral == "1"] <- "Trabaja"
+```
+
+
+```{r include=FALSE}
+# A??adimos la variale SEXO
+datosUIB_T1 <- cbind(datosUIB_T1, datosUIB$SITLAB) %>%
+  dplyr::rename(Situacion_laboral = 'datosUIB$SITLAB')
+
+datosUIB_T1$Situacion_laboral[datosUIB_T1$Situacion_laboral == "0"] <- "NO trabaja"
+datosUIB_T1$Situacion_laboral[datosUIB_T1$Situacion_laboral == "1"] <- "Trabaja"
+
+datosUIB_T2 <- cbind(datosUIB_T2, datosUIB$SITLAB9) %>%
+  dplyr::rename(Situacion_laboral = 'datosUIB$SITLAB9')
+
+datosUIB_T2$Situacion_laboral[datosUIB_T2$Situacion_laboral == "0"] <- "NO trabaja"
+datosUIB_T2$Situacion_laboral[datosUIB_T2$Situacion_laboral == "1"] <- "Trabaja"
+
+
+datosUIB_T3 <- cbind(datosUIB_T3, datosUIB$SITLAB81) %>%
+  dplyr::rename(Situacion_laboral = 'datosUIB$SITLAB81')
+
+datosUIB_T3$Situacion_laboral[datosUIB_T3$Situacion_laboral == "0"] <- "NO trabaja"
+datosUIB_T3$Situacion_laboral[datosUIB_T3$Situacion_laboral == "1"] <- "Trabaja"
+```
+
+A??adimos la variable "Universidad"
+
+```{r echo=TRUE, include=FALSE}
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$Universidad) %>%
+  dplyr::rename(Universidad = 'datosValencia$Universidad') %>%
+  dplyr::filter(Universidad == "Universidad Cat\u00f3lica de Valencia") 
+
+datosValencia_T1$Universidad <- as.character(datosValencia_T1$Universidad)
+
+datosValencia_T1$Universidad[datosValencia_T1$Universidad == "Universidad Cat\u00f3lica de Valencia"] <- "UCV"
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$Universidad) %>%
+  dplyr::rename(Universidad = 'datosValencia$Universidad') %>%
+  dplyr::filter(Universidad == "Universidad Cat\u00f3lica de Valencia") 
+
+datosValencia_T2$Universidad <- as.character(datosValencia_T2$Universidad)
+
+datosValencia_T2$Universidad[datosValencia_T2$Universidad == "Universidad Cat\u00f3lica de Valencia"] <- "UCV"
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$Universidad) %>%
+  dplyr::rename(Universidad = 'datosValencia$Universidad') %>%
+  dplyr::filter(Universidad == "Universidad Cat\u00f3lica de Valencia") 
+
+datosValencia_T3$Universidad <- as.character(datosValencia_T3$Universidad)
+
+datosValencia_T3$Universidad[datosValencia_T3$Universidad == "Universidad Cat\u00f3lica de Valencia"] <- "UCV"
+```
+
+
+
+
+```{r include=FALSE}
+Universidad <- sample(rep("UIB",51))
+datosUIB_T1 <- cbind(datosUIB_T1, Universidad) 
+
+datosUIB_T2 <- cbind(datosUIB_T2, Universidad) 
+
+datosUIB_T3 <- cbind(datosUIB_T3, Universidad) 
+```
+
+
+```{r include=FALSE}
+datos_T1 <- rbind(datosValencia_T1, datosUIB_T1)
+datos_T2 <- rbind(datosValencia_T2, datosUIB_T2)
+datos_T3 <- rbind(datosValencia_T3, datosUIB_T3)
+```
+
+Para tener los datos totalmente limpios, nos falta invertir las puntuaciones cuya respuesta interesa en orden inverso. Hay que invertir las preguntas: 3, 7, 8, 10, 12, 14, 17, 21, 25, 26, 28, 30 y 32.
+
+```{r include=FALSE}
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "1"] <- "6"
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "2"] <- "7"
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "4"] <- "8"
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "5"] <- "9"
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "6"] <- "5"
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "7"] <- "4"
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "8"] <- "2"
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "9"] <- "1"
+
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "1"] <- "6"
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "2"] <- "7"
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "4"] <- "8"
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "5"] <- "9"
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "6"] <- "5"
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "7"] <- "4"
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "8"] <- "2"
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "9"] <- "1"
+
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "1"] <- "6"
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "2"] <- "7"
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "4"] <- "8"
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "5"] <- "9"
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "6"] <- "5"
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "7"] <- "4"
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "8"] <- "2"
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "9"] <- "1"
+
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "1"] <- "6"
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "2"] <- "7"
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "4"] <- "8"
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "5"] <- "9"
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "6"] <- "5"
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "7"] <- "4"
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "8"] <- "2"
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "9"] <- "1"
+
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "1"] <- "6"
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "2"] <- "7"
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "4"] <- "8"
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "5"] <- "9"
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "6"] <- "5"
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "7"] <- "4"
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "8"] <- "2"
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "9"] <- "1"
+
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "1"] <- "6"
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "2"] <- "7"
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "4"] <- "8"
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "5"] <- "9"
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "6"] <- "5"
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "7"] <- "4"
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "8"] <- "2"
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "9"] <- "1"
+
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "1"] <- "6"
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "2"] <- "7"
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "4"] <- "8"
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "5"] <- "9"
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "6"] <- "5"
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "7"] <- "4"
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "8"] <- "2"
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "9"] <- "1"
+
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "1"] <- "6"
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "2"] <- "7"
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "4"] <- "8"
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "5"] <- "9"
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "6"] <- "5"
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "7"] <- "4"
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "8"] <- "2"
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "9"] <- "1"
+
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "1"] <- "6"
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "2"] <- "7"
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "4"] <- "8"
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "5"] <- "9"
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "6"] <- "5"
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "7"] <- "4"
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "8"] <- "2"
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "9"] <- "1"
+
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "1"] <- "6"
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "2"] <- "7"
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "4"] <- "8"
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "5"] <- "9"
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "6"] <- "5"
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "7"] <- "4"
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "8"] <- "2"
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "9"] <- "1"
+
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "1"] <- "6"
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "2"] <- "7"
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "4"] <- "8"
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "5"] <- "9"
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "6"] <- "5"
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "7"] <- "4"
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "8"] <- "2"
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "9"] <- "1"
+
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "1"] <- "6"
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "2"] <- "7"
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "4"] <- "8"
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "5"] <- "9"
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "6"] <- "5"
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "7"] <- "4"
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "8"] <- "2"
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "9"] <- "1"
+
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "1"] <- "6"
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "2"] <- "7"
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "4"] <- "8"
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "5"] <- "9"
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "6"] <- "5"
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "7"] <- "4"
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "8"] <- "2"
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "9"] <- "1"
+```
+
+
+```{r include=FALSE}
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "1"] <- "6"
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "2"] <- "7"
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "4"] <- "8"
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "5"] <- "9"
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "6"] <- "5"
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "7"] <- "4"
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "8"] <- "2"
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "9"] <- "1"
+
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "1"] <- "6"
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "2"] <- "7"
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "4"] <- "8"
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "5"] <- "9"
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "6"] <- "5"
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "7"] <- "4"
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "8"] <- "2"
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "9"] <- "1"
+
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "1"] <- "6"
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "2"] <- "7"
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "4"] <- "8"
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "5"] <- "9"
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "6"] <- "5"
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "7"] <- "4"
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "8"] <- "2"
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "9"] <- "1"
+
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "1"] <- "6"
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "2"] <- "7"
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "4"] <- "8"
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "5"] <- "9"
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "6"] <- "5"
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "7"] <- "4"
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "8"] <- "2"
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "9"] <- "1"
+
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "1"] <- "6"
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "2"] <- "7"
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "4"] <- "8"
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "5"] <- "9"
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "6"] <- "5"
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "7"] <- "4"
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "8"] <- "2"
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "9"] <- "1"
+
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "1"] <- "6"
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "2"] <- "7"
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "4"] <- "8"
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "5"] <- "9"
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "6"] <- "5"
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "7"] <- "4"
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "8"] <- "2"
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "9"] <- "1"
+
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "1"] <- "6"
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "2"] <- "7"
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "4"] <- "8"
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "5"] <- "9"
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "6"] <- "5"
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "7"] <- "4"
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "8"] <- "2"
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "9"] <- "1"
+
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "1"] <- "6"
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "2"] <- "7"
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "4"] <- "8"
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "5"] <- "9"
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "6"] <- "5"
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "7"] <- "4"
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "8"] <- "2"
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "9"] <- "1"
+
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "1"] <- "6"
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "2"] <- "7"
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "4"] <- "8"
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "5"] <- "9"
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "6"] <- "5"
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "7"] <- "4"
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "8"] <- "2"
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "9"] <- "1"
+
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "1"] <- "6"
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "2"] <- "7"
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "4"] <- "8"
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "5"] <- "9"
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "6"] <- "5"
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "7"] <- "4"
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "8"] <- "2"
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "9"] <- "1"
+
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "1"] <- "6"
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "2"] <- "7"
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "4"] <- "8"
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "5"] <- "9"
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "6"] <- "5"
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "7"] <- "4"
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "8"] <- "2"
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "9"] <- "1"
+
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "1"] <- "6"
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "2"] <- "7"
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "4"] <- "8"
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "5"] <- "9"
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "6"] <- "5"
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "7"] <- "4"
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "8"] <- "2"
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "9"] <- "1"
+
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "1"] <- "6"
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "2"] <- "7"
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "4"] <- "8"
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "5"] <- "9"
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "6"] <- "5"
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "7"] <- "4"
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "8"] <- "2"
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "9"] <- "1"
+```
+
+
+```{r include=FALSE}
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "1"] <- "6"
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "2"] <- "7"
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "4"] <- "8"
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "5"] <- "9"
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "6"] <- "5"
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "7"] <- "4"
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "8"] <- "2"
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "9"] <- "1"
+
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "1"] <- "6"
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "2"] <- "7"
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "4"] <- "8"
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "5"] <- "9"
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "6"] <- "5"
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "7"] <- "4"
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "8"] <- "2"
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "9"] <- "1"
+
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "1"] <- "6"
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "2"] <- "7"
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "4"] <- "8"
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "5"] <- "9"
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "6"] <- "5"
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "7"] <- "4"
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "8"] <- "2"
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "9"] <- "1"
+
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "1"] <- "6"
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "2"] <- "7"
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "4"] <- "8"
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "5"] <- "9"
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "6"] <- "5"
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "7"] <- "4"
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "8"] <- "2"
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "9"] <- "1"
+
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "1"] <- "6"
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "2"] <- "7"
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "4"] <- "8"
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "5"] <- "9"
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "6"] <- "5"
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "7"] <- "4"
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "8"] <- "2"
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "9"] <- "1"
+
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "1"] <- "6"
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "2"] <- "7"
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "4"] <- "8"
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "5"] <- "9"
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "6"] <- "5"
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "7"] <- "4"
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "8"] <- "2"
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "9"] <- "1"
+
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "1"] <- "6"
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "2"] <- "7"
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "4"] <- "8"
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "5"] <- "9"
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "6"] <- "5"
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "7"] <- "4"
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "8"] <- "2"
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "9"] <- "1"
+
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "1"] <- "6"
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "2"] <- "7"
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "4"] <- "8"
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "5"] <- "9"
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "6"] <- "5"
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "7"] <- "4"
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "8"] <- "2"
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "9"] <- "1"
+
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "1"] <- "6"
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "2"] <- "7"
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "4"] <- "8"
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "5"] <- "9"
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "6"] <- "5"
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "7"] <- "4"
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "8"] <- "2"
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "9"] <- "1"
+
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "1"] <- "6"
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "2"] <- "7"
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "4"] <- "8"
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "5"] <- "9"
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "6"] <- "5"
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "7"] <- "4"
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "8"] <- "2"
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "9"] <- "1"
+
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "1"] <- "6"
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "2"] <- "7"
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "4"] <- "8"
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "5"] <- "9"
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "6"] <- "5"
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "7"] <- "4"
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "8"] <- "2"
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "9"] <- "1"
+
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "1"] <- "6"
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "2"] <- "7"
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "4"] <- "8"
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "5"] <- "9"
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "6"] <- "5"
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "7"] <- "4"
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "8"] <- "2"
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "9"] <- "1"
+
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "1"] <- "6"
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "2"] <- "7"
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "4"] <- "8"
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "5"] <- "9"
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "6"] <- "5"
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "7"] <- "4"
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "8"] <- "2"
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "9"] <- "1"
+```
+
+Convertimos los "0" en NA.
+
+```{r include=FALSE}
+datos_T1[datos_T1 == "0"] <- NA
+datos_T2[datos_T2 == "0"] <- NA
+datos_T3[datos_T3 == "0"] <- NA
+```
+
+
+## Adopcion de perspectivas
+
+### Pregunta 6
+
+"Antes de tomar una decision, intento tener en cuenta todos los puntos de vista"
+
+```{r echo=FALSE}
+p6_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_6))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 6",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p6_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_6))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p6_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_6))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p6_t1, p6_t2, p6_t3, nrow =3)
+```
+
+### Pregunta 11
+
+"Cuando un/a amigo/a se ha portado mal conmigo, intento entender los motivos por los que lo ha hecho"
+
+```{r echo=FALSE}
+p11_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_11))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 11",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p11_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_11))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p11_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_11))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p11_t1, p11_t2, p11_t3, nrow =3)
+```
+
+### Pregunta 15
+
+"Intento ponerme en el lugar de los demas para saber como actuaran"
+
+```{r echo=FALSE}
+p15_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_15))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 15",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p15_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_15))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p15_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_15))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p15_t1, p15_t2, p15_t3, nrow =3)
+```
+
+### Pregunta 17
+
+"Si tengo una opinion formada no presto mucha atencion a los argumentos de los demas"
+
+```{r echo=FALSE}
+p17_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_17))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 17",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p17_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_17))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p17_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_17))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p17_t1, p17_t2, p17_t3, nrow =3)
+```
+
+### Pregunta 20
+
+"Cuando alguien tiene un problema, intento imaginarme como me sentiria si estuviera en su lugar"
+
+```{r echo=FALSE}
+p20_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_20))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 20",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p20_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_20))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p20_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_20))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p20_t1, p20_t2, p20_t3, nrow =3)
+```
+
+### Pregunta 26
+
+"Encuentro dificil ver las cosas desde el punto de vista de otras personas"
+
+```{r echo=FALSE}
+p26_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_26))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 26",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p26_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_26))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p26_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_26))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p26_t1, p26_t2, p26_t3, nrow =3)
+```
+
+### Pregunta 29
+
+"Intento comprender mejor a mis amigos/as mirando las situaciones desde su perspectiva"
+
+```{r echo=FALSE}
+p29_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_29))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 29",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p29_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_29))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p29_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_29))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p29_t1, p29_t2, p29_t3, nrow =3)
+```
+
+### Pregunta 32
+
+"Me resulta dificil ponerme en el lugar de personas con las que no estoy de acuerdo"
+
+```{r echo=FALSE}
+p32_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_32))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 32",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p32_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_32))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p32_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_32))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p32_t1, p32_t2, p32_t3, nrow =3)
+```
+
+
+## Comprension emocional
+
+### Pregunta 1
+
+"Me resulta facil darme cuenta de las intenciones de las personas que me rodean"
+
+```{r echo=FALSE}
+p1_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_1))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 1",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p1_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_1))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p1_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_1))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p1_t1, p1_t2, p1_t3, nrow =3)
+```
+
+
+### Pregunta 7
+
+"Rara vez reconozco como se siente una persona con solo mirarla"
+
+```{r echo=FALSE}
+p7_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_7))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 7",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p7_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_7))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p7_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_7))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p7_t1, p7_t2, p7_t3, nrow =3)
+```
+
+### Pregunta 10
+
+"Me es dificil entender como se siente una persona ante una situacion que no he vivido"
+
+```{r echo=FALSE}
+p10_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_10))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 10",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p10_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_10))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p10_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_10))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p10_t1, p10_t2, p10_t3, nrow =3)
+```
+
+### Pregunta 13
+
+"Reconozco facilmente cuando alguien esta de mal humor"
+
+```{r echo=FALSE}
+p13_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_13))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 13",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p13_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_13))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p13_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_13))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+grid.arrange(p13_t1, p13_t2, p13_t3, nrow =3)
+```
+
+### Pregunta 14
+
+"No siempre me doy cuenta cuando la persona que tengo al lado se siente mal"
+
+```{r echo=FALSE}
+p14_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_14))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 14",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p14_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_14))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p14_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_14))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p14_t1, p14_t2, p14_t3, nrow =3)
+```
+
+
+### Pregunta 24
+
+"Cuando conozco gente nueva me doy cuenta de la impresion que se han llevado de mi"
+
+```{r echo=FALSE}
+p24_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_24))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 24",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p24_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_24))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p24_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_24))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p24_t1, p24_t2, p24_t3, nrow =3)
+```
+
+### Pregunta 27
+
+"Entender como se siente otra persona es algo muy facil para mi"
+
+```{r echo=FALSE}
+p27_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_27))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 27",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p27_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_27))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p27_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_27))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p27_t1, p27_t2, p27_t3, nrow =3)
+```
+
+### Pregunta 31
+
+"Me doy cuenta cuando las personas cercanas a mi estan especialmente contentas, aunque no me hayan contado el motivo"
+
+```{r echo=FALSE}
+p31_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_31))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 31",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p31_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_31))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p31_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_31))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p31_t1, p31_t2, p31_t3, nrow =3)
+```
+
+### Pregunta 33
+
+"Me doy cuenta cuando alguien intenta esconder sus verdaderos sentimientos"
+
+```{r echo=FALSE}
+p33_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_33))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 33",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p33_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_33))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p33_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_33))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p33_t1, p33_t2, p33_t3, nrow =3)
+```
+
+## Estres empatico
+
+### Pregunta 3
+
+"No me pongo triste solo porque un amigo lo este"
+
+```{r echo=FALSE}
+p3_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_3))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 3",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p3_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_3))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p3_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_3))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p3_t1, p3_t2, p3_t3, nrow =3)
+```
+
+
+### Pregunta 5
+
+"Me afecta demasiado ver programas de television donde se muestran los problemas de otras personas"
+
+```{r echo=FALSE}
+p5_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_5))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 5",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p5_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_5))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p5_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_5))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p5_t1, p5_t2, p5_t3, nrow =3)
+```
+
+### Pregunta 8
+
+"Me afecta poco escuchar desgracias sobre personas desconocidas"
+
+```{r echo=FALSE}
+p8_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_8))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 8",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p8_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_8))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p8_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_8))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p8_t1, p8_t2, p8_t3, nrow =3)
+```
+
+### Pregunta 12
+
+"A menos que se trate de algo muy grave, me cuesta llorar con lo que les sucede a otros/as"
+
+```{r echo=FALSE}
+p12_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_12))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 12",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p12_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_12))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p12_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_12))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p12_t1, p12_t2, p12_t3, nrow =3)
+```
+
+### Pregunta 18
+
+"A veces sufro mas con las desgracias de los demas que ellos mismos"
+
+```{r echo=FALSE}
+p18_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_18))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 18",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p18_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_18))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p18_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_18))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p18_t1, p18_t2, p18_t3, nrow =3)
+```
+
+
+### Pregunta 23
+
+"No puedo evitar llorar con los testimonios de personas desconocidas"
+
+```{r echo=FALSE}
+p23_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_23))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 23",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p23_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_23))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p23_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_23))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p23_t1, p23_t2, p23_t3, nrow =3)
+```
+
+### Pregunta 28
+
+"No soy de esas personas que se deprimen con los problemas de los demas"
+
+```{r echo=FALSE}
+p28_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_28))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 28",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p28_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_28))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p28_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_28))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p28_t1, p28_t2, p28_t3, nrow =3)
+```
+
+### Pregunta 30
+
+"Me considero una persona fria porque no me conmuevo facilmente"
+
+```{r echo=FALSE}
+p30_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_30))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 30",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p30_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_30))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p30_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_30))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p30_t1, p30_t2, p30_t3, nrow =3)
+```
+
+## Alegria empatica 
+
+### Pregunta 2
+
+"Me siento bien si los/as demas se divierten (lo pasan bien)"
+
+```{r echo=FALSE}
+p2_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_2))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 2",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p2_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_2))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p2_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_2))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+grid.arrange(p2_t1, p2_t2, p2_t3, nrow =3)
+```
+
+### Pregunta 4
+
+"Si un/a amigo/a consigue un trabajo muy deseado, me entusiasmo con el"
+
+```{r echo=FALSE}
+p4_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_4))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 4",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p4_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_4))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p4_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_4))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+grid.arrange(p4_t1, p4_t2, p4_t3, nrow =3)
+```
+
+### Pregunta 9
+
+"Me hace ilusion ver que un/a amigo/a nuevo/a se encuentra a gusto en nuestro grupo"
+
+```{r echo=FALSE}
+p9_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_9))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 9",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p9_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_9))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p9_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_9))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+grid.arrange(p9_t1, p9_t2, p9_t3, nrow =3)
+```
+
+### Pregunta 16
+
+"Cuando a alguien le sucede algo bueno, siento alegria"
+
+```{r echo=FALSE}
+p16_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_16))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 16",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p16_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_16))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p16_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_16))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p16_t1, p16_t2, p16_t3, nrow =3)
+```
+
+### Pregunta 19
+
+"Me siento feliz solo con ver felices a otras personas"
+
+```{r echo=FALSE}
+p19_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_19))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 19",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p19_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_19))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p19_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_19))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p19_t1, p19_t2, p19_t3, nrow =3)
+```
+
+### Pregunta 21
+
+"No siento especial alegria si alguien me cuenta que ha tenido un golpe de suerte"
+
+```{r echo=FALSE}
+p21_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_21))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 21",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p21_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_21))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p21_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_21))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p21_t1, p21_t2, p21_t3, nrow =3)
+```
+
+### Pregunta 22
+
+"Cuando veo que alguien recibe un regalo no puedo reprimir una sonrisa"
+
+```{r echo=FALSE}
+p22_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_22))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 22",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p22_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_22))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p22_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_22))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p22_t1, p22_t2, p22_t3, nrow =3)
+```
+
+### Pregunta 25
+
+"Cuando mis amigos me cuentan que les va bien, no le doy mucha importancia"
+
+
+```{r echo=FALSE}
+p25_t1 <- ggplot(datos_T1, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_25))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(title = "Pregunta 25",
+       subtitle = "T1") +
+  xlab("Universidad") +
+  ylab("Frecuencia")+
+  theme(legend.title=element_blank())
+
+p25_t2<-  ggplot(datos_T2, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_25))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T2") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+p25_t3 <-  ggplot(datos_T3, aes(x=factor(Universidad), y = (..count..)/sum(..count..), fill=factor(Pregunta_25))) +
+  geom_bar(position=position_dodge()) +
+  facet_grid(~Situacion_laboral) +
+  labs(subtitle = "T3") +
+  xlab("Universidad") +
+  ylab("Frecuencia") +
+  theme(legend.title=element_blank())
+
+grid.arrange(p25_t1, p25_t2, p25_t3, nrow =3)
+```
+
+
