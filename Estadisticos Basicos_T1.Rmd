@@ -1,0 +1,501 @@
+---
+title: "Estadisticos Basicos"
+author: "María José Beltrán"
+date: "15/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Estadisticos Basicos
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(plyr)
+library(cluster)
+library(MASS)
+library(readxl)
+library(gridExtra)
+library(plotly)
+library(kableExtra)
+library(reshape2)
+library(modeest)
+```
+
+
+
+```{r}
+datosValencia <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", sheet = "control3_T1") %>%
+  dplyr::filter(Universidad == "Universidad Católica de Valencia") %>%
+  dplyr::select("Edad":"¿Cuántos módulos de prácticas has completado?") %>%
+  dplyr::rename(SITLAB = "Situación laboral: ¿Trabajas?", 
+                SITLABSn = "En caso afirmativo, ¿trabajas en el ámbito sanitario?",
+                ExpSLSn = "Años de experiencia laboral en el ámbito sanitario",
+                ExpSLnSn = "Años de experiencia laboral en el ámbito no sanitario",
+                SITFAM = "Situación familiar",
+                HIJOS = "¿Tienes hijos?", 
+                PrClN = "¿Has realizado prácticas clínicas?", 
+                modulos = "¿Cuántos módulos de prácticas has completado?")
+```
+
+
+```{r}
+datosUIB <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", sheet = "EII_int_T1") %>%
+  dplyr::select("Edad":"modulos")
+```
+
+Decodificamos las variables y añadimos etiquetas:
+
+```{r echo=FALSE}
+#SEXO
+Sexo = factor(datosUIB$Sexo, levels = c(0:1), labels = c("Hombre","Mujer"))
+
+#SITLAB (TRABAJA?)
+SITLAB = factor(datosUIB$SITLAB, levels = c(0:1), labels = c("No","Sí"))
+
+#SITLABSn (TRABAJA EN AMBITO SANITARIO?)
+SITLABSn = factor(datosUIB$SITLABSn, levels = c(0:1), labels = c("No","Sí"))
+
+#SITFAM (SITUACION FAMILIAR)
+SITFAM = factor(datosUIB$SITFAM, levels = c(1:4), labels = c("Vives solo", "Vives con amigos", "Vives en pareja", "Vives con mis padres o familia"))
+
+#HIJOS
+HIJOS = factor(datosUIB$HIJOS, levels = c(0:1), labels = c("No","Sí"))
+
+#PRCLIN (REALIZA O NO PRACTICAS CLINICAS)
+PrClN = factor(datosUIB$PrClN, levels = c(0:1), labels = c("No","Sí"))
+
+Edad = datosUIB$Edad
+ExpSLnSn = datosUIB$ExpSLnSn
+ExpSLSn = datosUIB$ExpSLSn
+modulos = datosUIB$modulos
+
+datos_UIB = data.frame(Edad, Sexo, SITLAB, SITLABSn, ExpSLnSn, ExpSLSn, SITFAM, HIJOS, PrClN, modulos)
+```
+
+Se realizaron tecnicas de estadistica descriptiva para todas las variables reportando, para las variables numericas: la media y desviacion estandar, minimo y maximo (rango), moda y mediana y, para las variables categoricas: analisis de frecuencias.
+
+Ademas de ello, para las variables numericas se aplico el test de Shapiro Wilk para muestras pequeñas, con el objetivo de determinar si dichas variables seguian una distribucion normal o no. 
+
+
+```{r echo=FALSE}
+str(datosValencia)
+str(datos_UIB)
+```
+
+
+#EDAD
+
+```{r}
+mean(datos_UIB$Edad, na.rm = TRUE)
+median(datos_UIB$Edad, na.rm = TRUE)
+mfv(datos_UIB$Edad)
+var(datos_UIB$Edad, na.rm = TRUE)
+sd(datos_UIB$Edad, na.rm = TRUE)
+min(datos_UIB$Edad)
+max(datos_UIB$Edad)
+table(datos_UIB$Edad)
+round(prop.table(table(datos_UIB$Edad))*100,2)
+```
+
+```{r} 
+#Prueba de Shapiro Wilk (muestras peque??as)
+shapiro.test(datosUIB$Edad)
+```
+
+```{r echo=FALSE}
+summary(datosUIB$Edad)
+```
+
+
+```{r}
+mean(datosValencia$Edad, na.rm = TRUE)
+median(datosValencia$Edad, na.rm = TRUE)
+mfv(datosValencia$Edad)
+var(datosValencia$Edad, na.rm = TRUE)
+sd(datosValencia$Edad, na.rm = TRUE)
+min(datosValencia$Edad)
+max(datosValencia$Edad)
+table(datosValencia$Edad)
+round(prop.table(table(datosValencia$Edad))*100,2)
+```
+
+
+```{r} 
+#Prueba de Shapiro Wilk (muestras peque??as)
+shapiro.test(datosValencia$Edad)
+```
+
+```{r echo=FALSE}
+summary(datosValencia$Edad)
+```
+
+
+#SEXO
+
+```{r echo=FALSE}
+table(datos_UIB$Sexo)
+round(prop.table(table(datos_UIB$Sexo))*100,2)
+```
+
+```{r include=FALSE}
+x=c("Hombre","Mujer")
+y=c(24,27)
+text <- c('47.06%', '52.94%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Sexo",  showlegend = T)
+
+fig
+```
+
+
+```{r echo=FALSE}
+table(datosValencia$Sexo)
+round(prop.table(table(datosValencia$Sexo))*100,2)
+```
+
+```{r include=FALSE}
+x=c("Hombre","Mujer")
+y=c(17,13)
+text <- c('56.67%', '43.33%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Sexo",  showlegend = T)
+
+fig
+```
+
+
+#SITUACION LABORAL
+
+```{r include=FALSE}
+table(datosUIB$SitLab)
+round(prop.table(table(datosUIB$SitLab))*100,2)
+```
+
+```{r echo=FALSE}
+x=c("No trabaja","Trabaja")
+y=c(31,20)
+text <- c('60.78%', '39.22%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Situacion laboral",  showlegend = T)
+
+fig
+```
+
+```{r include=FALSE}
+table(datosValencia$SitLab)
+round(prop.table(table(datosValencia$SitLab))*100,2)
+```
+
+```{r echo=FALSE}
+x=c("No trabaja","Trabaja")
+y=c(24,6)
+text <- c('80%', '20%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Situacion laboral",  showlegend = T)
+
+fig
+```
+
+#SITUACION LABORAL AMBITO SANITARIO
+
+```{r include=FALSE}
+table(datosUIB$Sitlab_Sanitario)
+round(prop.table(table(datosUIB$Sitlab_Sanitario))*100,2)
+```
+
+```{r echo=FALSE}
+x=c("No trabaja","Trabaja")
+y=c(50,1)
+text <- c('98.04%', '1.96%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Situacion laboral ambito sanitario",  showlegend = T)
+
+fig
+```
+
+
+```{r include=FALSE}
+table(datosValencia$Sitlab_Sanitario)
+round(prop.table(table(datosValencia$Sitlab_Sanitario))*100,2)
+```
+
+```{r echo=FALSE}
+x=c("No trabaja","Trabaja")
+y=c(29,1)
+text <- c('96.67%', '3.33%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Situacion laboral ambito sanitario",  showlegend = T)
+
+fig
+```
+
+#EXPERIENCIA LABORAL EN AMBITO SANITARIO
+
+```{r echo=FALSE}
+mean(datosUIB$Experiencia_Sanitario_n, na.rm = TRUE)
+median(datosUIB$Experiencia_Sanitario_n, na.rm = TRUE)
+mfv(datosUIB$Experiencia_Sanitario_n)
+var(datosUIB$Experiencia_Sanitario_n, na.rm = TRUE)
+sd(datosUIB$Experiencia_Sanitario_n, na.rm = TRUE)
+min(datosUIB$Experiencia_Sanitario_n)
+max(datosUIB$Experiencia_Sanitario_n)
+table(datosUIB$Experiencia_Sanitario_n)
+round(prop.table(table(datosUIB$Experiencia_Sanitario_n))*100,2)
+```
+
+```{r} 
+#Prueba de Shapiro Wilk (muestras peque??as)
+shapiro.test(datosUIB$Experiencia_Sanitario_n)
+```
+
+```{r echo=FALSE}
+summary(datosUIB$Experiencia_Sanitario_n)
+```
+
+
+```{r}
+mean(datosValencia$Experiencia_Sanitario_n, na.rm = TRUE)
+median(datosValencia$Experiencia_Sanitario_n, na.rm = TRUE)
+mfv(datosValencia$Experiencia_Sanitario_n)
+var(datosValencia$Experiencia_Sanitario_n, na.rm = TRUE)
+sd(datosValencia$Experiencia_Sanitario_n, na.rm = TRUE)
+min(datosValencia$Experiencia_Sanitario_n)
+max(datosValencia$Experiencia_Sanitario_n)
+table(datosValencia$Experiencia_Sanitario_n)
+round(prop.table(table(datosValencia$Experiencia_Sanitario_n))*100,2)
+```
+
+```{r} 
+#Prueba de Shapiro Wilk (muestras peque??as)
+shapiro.test(datosValencia$Experiencia_Sanitario_n)
+```
+
+```{r echo=FALSE}
+summary(datosValencia$Experiencia_Sanitario_n)
+```
+
+
+#EXPERIENCIA LABORAL EN AMBITO NO SANITARIO
+
+```{r}
+mean(datosUIB$Experiencia_NoSanitario_n, na.rm = TRUE)
+median(datosUIB$Experiencia_NoSanitario_n, na.rm = TRUE)
+mfv(datosUIB$Experiencia_NoSanitario_n)
+var(datosUIB$Experiencia_NoSanitario_n, na.rm = TRUE)
+sd(datosUIB$Experiencia_NoSanitario_n, na.rm = TRUE)
+min(datosUIB$Experiencia_NoSanitario_n)
+max(datosUIB$Experiencia_NoSanitario_n)
+table(datosUIB$Experiencia_NoSanitario_n)
+round(prop.table(table(datosUIB$Experiencia_NoSanitario_n))*100,2)
+```
+
+```{r} 
+#Prueba de Shapiro Wilk (muestras peque??as)
+shapiro.test(datosUIB$Experiencia_NoSanitario_n)
+```
+
+```{r echo=FALSE}
+summary(datosUIB$Experiencia_NoSanitario_n)
+```
+
+
+
+```{r}
+mean(datosValencia$Experiencia_NoSanitario_n, na.rm = TRUE)
+median(datosValencia$Experiencia_NoSanitario_n, na.rm = TRUE)
+mfv(datosValencia$Experiencia_NoSanitario_n)
+var(datosValencia$Experiencia_NoSanitario_n, na.rm = TRUE)
+sd(datosValencia$Experiencia_NoSanitario_n, na.rm = TRUE)
+min(datosValencia$Experiencia_NoSanitario_n)
+max(datosValencia$Experiencia_NoSanitario_n)
+table(datosValencia$Experiencia_NoSanitario_n)
+round(prop.table(table(datosValencia$Experiencia_NoSanitario_n))*100,2)
+```
+
+```{r} 
+#Prueba de Shapiro Wilk (muestras peque??as)
+shapiro.test(datosValencia$Experiencia_NoSanitario_n)
+```
+
+```{r echo=FALSE}
+summary(datosValencia$Experiencia_NoSanitario_n)
+```
+
+#SITUACION FAMILIAR
+
+```{r echo=FALSE}
+table(datosUIB$SitFam)
+round(prop.table(table(datosUIB$SitFam))*100,2)
+```
+
+```{r include=FALSE}
+x=c("Vivo con amigos", "Vivo con mis padres o familia", "Vivo en pareja","Vivo solo")
+y=c(16,30,1,4)
+text <- c('31.37%', '58.82%', '1.96%', '7.84%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y, marker = list(colors =c(p1='#ff9999', p2='#ffd11a',p3='#00e600',p4='#1a53ff')))
+fig <- fig %>% add_pie(hole=0.6) 
+fig <- fig %>% layout(title = "Situacion familiar",  showlegend = T)                    
+fig
+```
+
+
+```{r echo=FALSE}
+table(datosValencia$SitFam)
+round(prop.table(table(datosValencia$SitFam))*100,2)
+```
+
+```{r include=FALSE}
+x=c("Vivo con amigos", "Vivo con mis padres o familia", "Vivo en pareja","Vivo solo")
+y=c(6,20,2,2)
+text <- c('20%', '66.67%', '6.67%', '6.67%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y, marker = list(colors =c(p1='#ff9999', p2='#ffd11a',p3='#00e600',p4='#1a53ff')))
+fig <- fig %>% add_pie(hole=0.6) 
+fig <- fig %>% layout(title = "Situacion familiar",  showlegend = T)                    
+fig
+```
+
+#HIJOS
+
+```{r echo=FALSE}
+table(datosUIB$Hijos)
+round(prop.table(table(datosUIB$Hijos))*100,2)
+```
+
+```{r include=FALSE}
+x=c("No tiene hijos","Tiene hijos")
+y=c(49,2)
+text <- c('96.08%', '3.92%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Hijos",  showlegend = T)
+
+fig
+```
+
+
+```{r echo=FALSE}
+table(datosValencia$Hijos)
+round(prop.table(table(datosValencia$Hijos))*100,2)
+```
+
+```{r include=FALSE}
+x=c("No tiene hijos","Tiene hijos")
+y=c(29,1)
+text <- c('96.67%', '3.33%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Hijos",  showlegend = T)
+
+fig
+```
+
+#PRACTICAS CLINICAS
+
+```{r echo=FALSE}
+table(datosUIB$Prac_clinicas)
+round(prop.table(table(datosUIB$Prac_clinicas))*100,2)
+```
+
+
+```{r include=FALSE}
+x=c("Ha realizado","No ha realizado")
+y=c(50,1)
+text <- c('98.04%', '1.96%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Practicas clinicas",  showlegend = T)
+
+fig
+```
+
+```{r echo=FALSE}
+table(datosValencia$Prac_clinicas)
+round(prop.table(table(datosValencia$Prac_clinicas))*100,2)
+```
+
+```{r include=FALSE}
+x=c("Ha realizado","No ha realizado")
+y=c(17,13)
+text <- c('56.67%', '43.33%')
+data <- data.frame(x,y,text)
+
+fig <- data %>% plot_ly(labels = ~x, values = ~y)
+fig <- fig %>% add_pie(hole=0.6)
+
+fig <- fig %>% layout(title = "Practicas clinicas",  showlegend = T)
+
+fig
+```
+
+
+
+#NUMERO MODULOS PRACTICAS CLINICAS
+
+```{r}
+mean(datosUIB$Prac_clinicas_n, na.rm = TRUE)
+median(datosUIB$Prac_clinicas_n, na.rm = TRUE)
+mfv(datosUIB$Prac_clinicas_n)
+var(datosUIB$Prac_clinicas_n, na.rm = TRUE)
+sd(datosUIB$Prac_clinicas_n, na.rm = TRUE)
+min(datosUIB$Prac_clinicas_n)
+max(datosUIB$Prac_clinicas_n)
+table(datosUIB$Prac_clinicas_n)
+round(prop.table(table(datosUIB$Prac_clinicas_n))*100,2)
+```
+
+
+```{r}
+mean(datosValencia$Prac_clinicas_n, na.rm = TRUE)
+median(datosValencia$Prac_clinicas_n, na.rm = TRUE)
+mfv(datosValencia$Prac_clinicas_n)
+var(datosValencia$Prac_clinicas_n, na.rm = TRUE)
+sd(datosValencia$Prac_clinicas_n, na.rm = TRUE)
+min(datosValencia$Prac_clinicas_n)
+max(datosValencia$Prac_clinicas_n)
+table(datosValencia$Prac_clinicas_n)
+round(prop.table(table(datosValencia$Prac_clinicas_n))*100,2)
+```
+
