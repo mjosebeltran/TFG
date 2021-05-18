@@ -1,0 +1,962 @@
+---
+title: "Escalamiento Multidimensional"
+author: "Maria Jose Beltran"
+date: "25/2/2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, r,echo=FALSE}
+library(StatMatch) #libreria para la dist Gower
+library(magrittr)
+library(dplyr)
+library(ggpubr)
+library(cluster)
+library(gridExtra)
+library(robustbase)
+library(plotly)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(plyr)
+library(cluster)
+library(MASS)
+library(readxl)
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=TRUE}
+datosValencia <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx")
+
+datosUIB <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", n_max = 52)
+```
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#datos Universidad de Valencia y Universidad Catolica de Valencia
+
+datosValencia_T1 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", range = cell_cols("AN:BT")) %>% 
+  dplyr::rename(Pregunta_1 = 'T1TECA1', Pregunta_2 = 'T1TECA2', Pregunta_3 = 'T1TECA3', Pregunta_4 = 'T1TECA4', Pregunta_5 = 'T1TECA5', Pregunta_6 = 'T1TECA6', Pregunta_7 = 'T1TECA7', Pregunta_8 = 'T1TECA8', Pregunta_9 = 'T1TECA9', Pregunta_10 = 'T1TECA10', Pregunta_11 =  'T1TECA11', Pregunta_12 = 'T1TECA12', Pregunta_13 = 'T1TECA13' , Pregunta_14 = 'T1TECA14', Pregunta_15 = 'T1TECA15', Pregunta_16 = 'T1TECA16', Pregunta_17 = 'T1TECA17',Pregunta_18 = 'T1TECA18', Pregunta_19 = 'T1TECA19', Pregunta_20 = 'T1TECA20', Pregunta_21 = 'T1TECA21',Pregunta_22 = 'T1TECA22', Pregunta_23 = 'T1TECA23',Pregunta_24 = 'T1TECA24', Pregunta_25 = 'T1TECA25', Pregunta_26 = 'T1TECA26', Pregunta_27 = 'T1TECA27', Pregunta_28 = 'T1TECA28', Pregunta_29 = 'T1TECA29', Pregunta_30 = 'T1TECA30', Pregunta_31 = 'T1TECA31', Pregunta_32 = 'T1TECA32', Pregunta_33 = 'T1TECA33')
+
+datosValencia_T2 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", range = cell_cols("CS:DY")) %>% 
+  dplyr::rename(Pregunta_1 = 'T2TECA1', Pregunta_2 = 'T2TECA2', Pregunta_3 = 'T2TECA3',Pregunta_4 = 'T2TECA4', Pregunta_5 = 'T2TECA5', Pregunta_6 = 'T2TECA6', Pregunta_7 = 'T2TECA7', Pregunta_8 = 'T2TECA8', Pregunta_9 = 'T2TECA9', Pregunta_10 = 'T2TECA10', Pregunta_11 =  'T2TECA11', Pregunta_12 = 'T2TECA12', Pregunta_13 = 'T2TECA13', Pregunta_14 = 'T2TECA14', Pregunta_15 = 'T2TECA15', Pregunta_16 = 'T2TECA16', Pregunta_17 = 'T2TECA17',Pregunta_18 = 'T2TECA18', Pregunta_19 = 'T2TECA19', Pregunta_20 = 'T2TECA20', Pregunta_21 = 'T2TECA21',Pregunta_22 = 'T2TECA22', Pregunta_23 = 'T2TECA23',Pregunta_24 = 'T2TECA24', Pregunta_25 = 'T2TECA25', Pregunta_26 = 'T2TECA26', Pregunta_27 = 'T2TECA27', Pregunta_28 = 'T2TECA28', Pregunta_29 = 'T2TECA29', Pregunta_30 = 'T2TECA30', Pregunta_31 = 'T2TECA31', Pregunta_32 = 'T2TECA32', Pregunta_33 = 'T2TECA33')
+
+datosValencia_T3 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", range = cell_cols("EX:GD")) %>% 
+  dplyr::rename(Pregunta_1 = 'T3TECA1', Pregunta_2 = 'T3TECA2', Pregunta_3 = 'T3TECA3',Pregunta_4 = 'T3TECA4', Pregunta_5 = 'T3TECA5', Pregunta_6 = 'T3TECA6', Pregunta_7 = 'T3TECA7', Pregunta_8 = 'T3TECA8', Pregunta_9 = 'T3TECA9', Pregunta_10 = 'T3TECA10', Pregunta_11 =  'T3TECA11', Pregunta_12 = 'T3TECA12', Pregunta_13 = 'T3TECA13', Pregunta_14 = 'T3TECA14', Pregunta_15 = 'T3TECA15', Pregunta_16 = 'T3TECA16', Pregunta_17 = 'T3TECA17',Pregunta_18 = 'T3TECA18', Pregunta_19 = 'T3TECA19', Pregunta_20 = 'T3TECA20', Pregunta_21 = 'T3TECA21',Pregunta_22 = 'T3TECA22', Pregunta_23 = 'T3TECA23',Pregunta_24 = 'T3TECA24', Pregunta_25 = 'T3TECA25', Pregunta_26 = 'T3TECA26', Pregunta_27 = 'T3TECA27', Pregunta_28 = 'T3TECA28', Pregunta_29 = 'T3TECA29', Pregunta_30 = 'T3TECA30', Pregunta_31 = 'T3TECA31', Pregunta_32 = 'T3TECA32', Pregunta_33 = 'T3TECA33')
+```
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#daots UIB 4to CURSO
+
+datosUIB_T1 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", range = cell_cols("AN:BT")) %>% 
+  dplyr::rename(Pregunta_1 = '1TECA1', Pregunta_2 = '1TECA2', Pregunta_3 = '1TECA3',Pregunta_4 = '1TECA4', Pregunta_5 = '1TECA5', Pregunta_6 = '1TECA6', Pregunta_7 = '1TECA7', Pregunta_8 = '1TECA8', Pregunta_9 = '1TECA9', Pregunta_10 = '1TECA10', Pregunta_11 =  '1TECA11', Pregunta_12 = '1TECA12', Pregunta_13 = '1TECA13', Pregunta_14 = '1TECA14', Pregunta_15 = '1TECA15', Pregunta_16 = '1TECA16', Pregunta_17 = '1TECA17',Pregunta_18 = '1TECA18', Pregunta_19 = '1TECA19', Pregunta_20 = '1TECA20', Pregunta_21 = '1TECA21',Pregunta_22 = '1TECA22', Pregunta_23 = '1TECA23',Pregunta_24 = '1TECA24', Pregunta_25 = '1TECA25', Pregunta_26 = '1TECA26', Pregunta_27 = '1TECA27', Pregunta_28 = '1TECA28', Pregunta_29 = '1TECA29', Pregunta_30 = '1TECA30', Pregunta_31 = '1TECA31', Pregunta_32 = '1TECA32', Pregunta_33 = '1TECA33')
+
+datosUIB_T2 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", range = cell_cols("DI:EO"))  %>%
+  dplyr::rename(Pregunta_1 = '1TECA141', Pregunta_2 = '1TECA242', Pregunta_3 = '1TECA343', Pregunta_4 = '1TECA444', Pregunta_5 = '1TECA545',Pregunta_6 =  '1TECA646', Pregunta_7 = '1TECA747', Pregunta_8 = '1TECA848',Pregunta_9 = '1TECA949', Pregunta_10 = '1TECA1050',Pregunta_11 =  '1TECA1151', Pregunta_12 = '1TECA1252', Pregunta_13 = '1TECA1353', Pregunta_14 = '1TECA1454', Pregunta_15 = '1TECA1555', Pregunta_16 = '1TECA1656', Pregunta_17 = '1TECA1757', Pregunta_18 = '1TECA1858', Pregunta_19 = '1TECA1959', Pregunta_20 = '1TECA2060', Pregunta_21 = '1TECA2161',Pregunta_22 =  '1TECA2262', Pregunta_23 = '1TECA2363', Pregunta_24 = '1TECA2464', Pregunta_25 = '1TECA2565', Pregunta_26 = '1TECA2666', Pregunta_27 = '1TECA2767', Pregunta_28 = '1TECA2868', Pregunta_29 = '1TECA2969',Pregunta_30 =  '1TECA3070', Pregunta_31= '1TECA3171', Pregunta_32 = '1TECA3272', Pregunta_33 = '1TECA3373')
+
+datosUIB_T3 <-read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", range = cell_cols("GD:HJ")) %>%
+  dplyr::rename(Pregunta_1 = '1TECA1113', Pregunta_2 = '1TECA2114', Pregunta_3 = '1TECA3115', Pregunta_4 = '1TECA4116', Pregunta_5 = '1TECA5117', Pregunta_6 = '1TECA6118', Pregunta_7 = '1TECA7119', Pregunta_8 = '1TECA8120', Pregunta_9 = '1TECA9121', Pregunta_10 =  '1TECA10122', Pregunta_11 = '1TECA11123', Pregunta_12 = '1TECA12124',Pregunta_13 = '1TECA13125', Pregunta_14 = '1TECA14126', Pregunta_15 = '1TECA15127', Pregunta_16 = '1TECA16128', Pregunta_17 = '1TECA17129', Pregunta_18 = '1TECA18130', Pregunta_19 = '1TECA19131', Pregunta_20 = '1TECA20132', Pregunta_21 = '1TECA21133', Pregunta_22 = '1TECA22134', Pregunta_23 = '1TECA23135', Pregunta_24 = '1TECA24136', Pregunta_25 = '1TECA25137', Pregunta_26 = '1TECA26138',Pregunta_27 =  '1TECA27139', Pregunta_28 = '1TECA28140', Pregunta_29 = '1TECA29141', Pregunta_30 ='1TECA30142', Pregunta_31 = '1TECA31143', Pregunta_32 = '1TECA32144',Pregunta_33 = '1TECA33145')
+```
+
+
+
+```{r echo=TRUE}
+# A??adimos la variale SEXO
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$SEXO) %>%
+  dplyr::rename(Sexo = 'datosValencia$SEXO')
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$SEXO) %>%
+  dplyr::rename(Sexo = 'datosValencia$SEXO')
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$SEXO) %>%
+  dplyr::rename(Sexo = 'datosValencia$SEXO')
+
+```
+
+
+```{r echo=TRUE}
+# A??adimos la variale SEXO
+datosUIB_T1 <- cbind(datosUIB_T1, datosUIB$Sexo) %>%
+  dplyr::rename(Sexo = 'datosUIB$Sexo')
+
+
+datosUIB_T2 <- cbind(datosUIB_T2, datosUIB$Sexo) %>%
+  dplyr::rename(Sexo = 'datosUIB$Sexo')
+
+
+datosUIB_T3 <- cbind(datosUIB_T3, datosUIB$Sexo) %>%
+  dplyr::rename(Sexo = 'datosUIB$Sexo')
+
+```
+
+
+```{r echo=TRUE}
+#A??adimos la variable HIJOS
+
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$HIJOS) %>%
+  dplyr::rename(Hijos = 'datosValencia$HIJOS')
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$HIJOS) %>%
+  dplyr::rename(Hijos = 'datosValencia$HIJOS')
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$HIJOS) %>%
+  dplyr::rename(Hijos = 'datosValencia$HIJOS')
+```
+
+
+
+```{r echo=TRUE}
+#A??adimos la variable HIJOS
+
+datosUIB_T1 <- cbind(datosUIB_T1, datosUIB$HIJOS) %>%
+  dplyr::rename(Hijos = 'datosUIB$HIJOS')
+
+datosUIB_T2 <- cbind(datosUIB_T2, datosUIB$HIJOS14) %>%
+  dplyr::rename(Hijos = 'datosUIB$HIJOS14')
+
+datosUIB_T3 <- cbind(datosUIB_T3, datosUIB$HIJOS86) %>%
+  dplyr::rename(Hijos = 'datosUIB$HIJOS86')
+```
+
+
+```{r echo=TRUE}
+#A??adimos la variable EDAD
+
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$EDAD) %>%
+  dplyr::rename(Edad = 'datosValencia$EDAD')
+
+datosValencia_T1$Edad[datosValencia_T1$Edad <= 21 ] <- 1
+datosValencia_T1$Edad[datosValencia_T1$Edad >= 22 & datosValencia_T1$Edad <= 25] <- 2
+datosValencia_T1$Edad[datosValencia_T1$Edad >= 26 & datosValencia_T1$Edad <= 30] <- 3
+datosValencia_T1$Edad[datosValencia_T1$Edad >= 31] <- 4
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$EDAD) %>%
+  dplyr::rename(Edad = 'datosValencia$EDAD')
+
+datosValencia_T2$Edad[datosValencia_T2$Edad <= 21 ] <- 1
+datosValencia_T2$Edad[datosValencia_T2$Edad >= 22 & datosValencia_T2$Edad <= 25] <- 2
+datosValencia_T2$Edad[datosValencia_T2$Edad >= 26 & datosValencia_T2$Edad <= 30] <- 3
+datosValencia_T2$Edad[datosValencia_T2$Edad >= 31] <- 4
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$EDAD) %>%
+  dplyr::rename(Edad = 'datosValencia$EDAD')
+
+datosValencia_T3$Edad[datosValencia_T3$Edad <= 21 ] <- 1
+datosValencia_T3$Edad[datosValencia_T3$Edad >= 22 & datosValencia_T3$Edad <= 25] <- 2
+datosValencia_T3$Edad[datosValencia_T3$Edad >= 26 & datosValencia_T3$Edad <= 30] <- 3
+datosValencia_T3$Edad[datosValencia_T3$Edad >= 31] <- 4
+```
+
+
+
+```{r echo=TRUE}
+#A??adimos la variable EDAD
+
+datosUIB_T1 <- cbind(datosUIB_T1, datosUIB$Edad) %>%
+  dplyr::rename(Edad = 'datosUIB$Edad')
+
+datosUIB_T1$Edad[datosUIB_T1$Edad <= 21 ] <- 1
+datosUIB_T1$Edad[datosUIB_T1$Edad >= 22 & datosUIB_T1$Edad <= 25] <- 2
+datosUIB_T1$Edad[datosUIB_T1$Edad >= 26 & datosUIB_T1$Edad <= 30] <- 3
+datosUIB_T1$Edad[datosUIB_T1$Edad >= 31] <- 4
+
+datosUIB_T2 <- cbind(datosUIB_T2, datosUIB$Edad7) %>%
+  dplyr::rename(Edad = 'datosUIB$Edad7')
+
+datosUIB_T2$Edad[datosUIB_T2$Edad <= 21 ] <- 1
+datosUIB_T2$Edad[datosUIB_T2$Edad >= 22 & datosUIB_T2$Edad <= 25] <- 2
+datosUIB_T2$Edad[datosUIB_T2$Edad >= 26 & datosUIB_T2$Edad <= 30] <- 3
+datosUIB_T2$Edad[datosUIB_T2$Edad >= 31] <- 4
+
+datosUIB_T3 <- cbind(datosUIB_T3, datosUIB$Edad79) %>%
+  dplyr::rename(Edad = 'datosUIB$Edad79')
+
+datosUIB_T3$Edad[datosUIB_T3$Edad <= 21 ] <- 1
+datosUIB_T3$Edad[datosUIB_T3$Edad >= 22 & datosUIB_T3$Edad <= 25] <- 2
+datosUIB_T3$Edad[datosUIB_T3$Edad >= 26 & datosUIB_T3$Edad <= 30] <- 3
+datosUIB_T3$Edad[datosUIB_T3$Edad >= 31] <- 4
+```
+
+
+
+```{r echo=TRUE}
+#A??adimos la variable TRABAJA
+
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$SITLAB) %>%
+  dplyr::rename(Trabaja = 'datosValencia$SITLAB')
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$SITLAB) %>%
+  dplyr::rename(Trabaja = 'datosValencia$SITLAB')
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$SITLAB) %>%
+  dplyr::rename(Trabaja = 'datosValencia$SITLAB')
+```
+
+
+
+```{r echo=TRUE}
+#A??adimos la variable TRABAJA
+
+datosUIB_T1 <- cbind(datosUIB_T1, datosUIB$SITLAB) %>%
+  dplyr::rename(Trabaja = 'datosUIB$SITLAB')
+
+datosUIB_T2 <- cbind(datosUIB_T2, datosUIB$SITLAB9) %>%
+  dplyr::rename(Trabaja = 'datosUIB$SITLAB9')
+
+datosUIB_T3 <- cbind(datosUIB_T3, datosUIB$SITLAB81) %>%
+  dplyr::rename(Trabaja = 'datosUIB$SITLAB81')
+```
+
+
+```{r echo=TRUE}
+#A??adimos la variable EXPERIENCIA AMBITO SANITARIO
+
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$ExpSLSn) %>%
+  dplyr::rename(Exp_ambito_sanitario = 'datosValencia$ExpSLSn')
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$ExpSLSn) %>%
+  dplyr::rename(Exp_ambito_sanitario = 'datosValencia$ExpSLSn')
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$ExpSLSn) %>%
+  dplyr::rename(Exp_ambito_sanitario = 'datosValencia$ExpSLSn')
+```
+
+
+```{r echo=TRUE}
+#A??adimos la variable EXPERIENCIA AMBITO SANITARIO
+
+datosUIB_T1 <- cbind(datosUIB_T1, datosUIB$ExpSLSn) %>%
+  dplyr::rename(Exp_ambito_sanitario = 'datosUIB$ExpSLSn')
+
+datosUIB_T1$Exp_ambito_sanitario[datosUIB_T1$Exp_ambito_sanitario < 1 ] <- 0
+datosUIB_T1$Exp_ambito_sanitario[datosUIB_T1$Exp_ambito_sanitario >= 1 ] <- 1
+
+datosUIB_T2 <- cbind(datosUIB_T2, datosUIB$ExpSLSn) %>%
+  dplyr::rename(Exp_ambito_sanitario = 'datosUIB$ExpSLSn')
+
+datosUIB_T2$Exp_ambito_sanitario[datosUIB_T2$Exp_ambito_sanitario < 1 ] <- 0
+datosUIB_T2$Exp_ambito_sanitario[datosUIB_T2$Exp_ambito_sanitario >= 1 ] <- 1
+
+datosUIB_T3 <- cbind(datosUIB_T3, datosUIB$ExpSLSn) %>%
+  dplyr::rename(Exp_ambito_sanitario = 'datosUIB$ExpSLSn')
+
+datosUIB_T3$Exp_ambito_sanitario[datosUIB_T3$Exp_ambito_sanitario < 1 ] <- 0
+datosUIB_T3$Exp_ambito_sanitario[datosUIB_T3$Exp_ambito_sanitario >= 1 ] <- 1
+```
+
+
+```{r echo=TRUE}
+datosValencia_T1 <- cbind(datosValencia_T1, datosValencia$Universidad) %>%
+  dplyr::rename(Universidad = 'datosValencia$Universidad') %>%
+  dplyr::filter(Universidad == "Universidad Cat\u00f3lica de Valencia") 
+
+datosValencia_T1$Universidad <- as.character(datosValencia_T1$Universidad)
+
+datosValencia_T1$Universidad[datosValencia_T1$Universidad == "Universidad Cat\u00f3lica de Valencia"] <- "UCV"
+
+datosValencia_T2 <- cbind(datosValencia_T2, datosValencia$Universidad) %>%
+  dplyr::rename(Universidad = 'datosValencia$Universidad') %>%
+  dplyr::filter(Universidad == "Universidad Cat\u00f3lica de Valencia") 
+
+datosValencia_T2$Universidad <- as.character(datosValencia_T2$Universidad)
+
+datosValencia_T2$Universidad[datosValencia_T2$Universidad == "Universidad Cat\u00f3lica de Valencia"] <- "UCV"
+
+datosValencia_T3 <- cbind(datosValencia_T3, datosValencia$Universidad) %>%
+  dplyr::rename(Universidad = 'datosValencia$Universidad') %>%
+  dplyr::filter(Universidad == "Universidad Cat\u00f3lica de Valencia") 
+
+datosValencia_T3$Universidad <- as.character(datosValencia_T3$Universidad)
+
+datosValencia_T3$Universidad[datosValencia_T3$Universidad == "Universidad Cat\u00f3lica de Valencia"] <- "UCV"
+```
+
+
+
+```{r echo=TRUE}
+Universidad <- sample(rep("UIB",51))
+datosUIB_T1 <- cbind(datosUIB_T1, Universidad) 
+
+datosUIB_T2 <- cbind(datosUIB_T2, Universidad) 
+
+datosUIB_T3 <- cbind(datosUIB_T3, Universidad) 
+```
+
+
+
+```{r echo=TRUE}
+datos_T1 <- rbind(datosValencia_T1, datosUIB_T1)
+datos_T2 <- rbind(datosValencia_T2, datosUIB_T2)
+datos_T3 <- rbind(datosValencia_T3, datosUIB_T3)
+```
+
+
+```{r echo=TRUE}
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "1"] <- 6
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "2"] <- 7
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "4"] <- 8
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "5"] <- 9
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "6"] <- 5
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "7"] <- 4
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "8"] <- 2
+datos_T1$Pregunta_3[datos_T1$Pregunta_3 == "9"] <- 1
+
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "1"] <- 6
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "2"] <- 7
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "4"] <- 8
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "5"] <- 9
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "6"] <- 5
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "7"] <- 4
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "8"] <- 2
+datos_T1$Pregunta_7[datos_T1$Pregunta_7 == "9"] <- 1
+
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "1"] <- 6
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "2"] <- 7
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "4"] <- 8
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "5"] <- 9
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "6"] <- 5
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "7"] <- 4
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "8"] <- 2
+datos_T1$Pregunta_8[datos_T1$Pregunta_8 == "9"] <- 1
+
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "1"] <- 6
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "2"] <- 7
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "4"] <- 8
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "5"] <- 9
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "6"] <- 5
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "7"] <- 4
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "8"] <- 2
+datos_T1$Pregunta_10[datos_T1$Pregunta_10 == "9"] <- 1
+
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "1"] <- 6
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "2"] <- 7
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "4"] <- 8
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "5"] <- 9
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "6"] <- 5
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "7"] <- 4
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "8"] <- 2
+datos_T1$Pregunta_12[datos_T1$Pregunta_12 == "9"] <- 1
+
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "1"] <- 6
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "2"] <- 7
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "4"] <- 8
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "5"] <- 9
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "6"] <- 5
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "7"] <- 4
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "8"] <- 2
+datos_T1$Pregunta_14[datos_T1$Pregunta_14 == "9"] <- 1
+
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "1"] <- 6
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "2"] <- 7
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "4"] <- 8
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "5"] <- 9
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "6"] <- 5
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "7"] <- 4
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "8"] <- 2
+datos_T1$Pregunta_17[datos_T1$Pregunta_17 == "9"] <- 1
+
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "1"] <- 6
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "2"] <- 7
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "4"] <- 8
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "5"] <- 9
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "6"] <- 5
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "7"] <- 4
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "8"] <- 2
+datos_T1$Pregunta_21[datos_T1$Pregunta_21 == "9"] <- 1
+
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "1"] <- 6
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "2"] <- 7
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "4"] <- 8
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "5"] <- 9
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "6"] <- 5
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "7"] <- 4
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "8"] <- 2
+datos_T1$Pregunta_25[datos_T1$Pregunta_25 == "9"] <- 1
+
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "1"] <- 6
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "2"] <- 7
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "4"] <- 8
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "5"] <- 9
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "6"] <- 5
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "7"] <- 4
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "8"] <- 2
+datos_T1$Pregunta_26[datos_T1$Pregunta_26 == "9"] <- 1
+
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "1"] <- 6
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "2"] <- 7
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "4"] <- 8
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "5"] <- 9
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "6"] <- 5
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "7"] <- 4
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "8"] <- 2
+datos_T1$Pregunta_28[datos_T1$Pregunta_28 == "9"] <- 1
+
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "1"] <- 6
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "2"] <- 7
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "4"] <- 8
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "5"] <- 9
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "6"] <- 5
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "7"] <- 4
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "8"] <- 2
+datos_T1$Pregunta_30[datos_T1$Pregunta_30 == "9"] <- 1
+
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "1"] <- 6
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "2"] <- 7
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "4"] <- 8
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "5"] <- 9
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "6"] <- 5
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "7"] <- 4
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "8"] <- 2
+datos_T1$Pregunta_32[datos_T1$Pregunta_32 == "9"] <- 1
+```
+
+
+```{r echo=TRUE}
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "1"] <- 6
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "2"] <- 7
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "4"] <- 8
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "5"] <- 9
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "6"] <- 5
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "7"] <- 4
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "8"] <- 2
+datos_T2$Pregunta_3[datos_T2$Pregunta_3 == "9"] <- 1
+
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "1"] <- 6
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "2"] <- 7
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "4"] <- 8
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "5"] <- 9
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "6"] <- 5
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "7"] <- 4
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "8"] <- 2
+datos_T2$Pregunta_7[datos_T2$Pregunta_7 == "9"] <- 1
+
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "1"] <- 6
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "2"] <- 7
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "4"] <- 8
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "5"] <- 9
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "6"] <- 5
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "7"] <- 4
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "8"] <- 2
+datos_T2$Pregunta_8[datos_T2$Pregunta_8 == "9"] <- 1
+
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "1"] <- 6
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "2"] <- 7
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "4"] <- 8
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "5"] <- 9
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "6"] <- 5
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "7"] <- 4
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "8"] <- 2
+datos_T2$Pregunta_10[datos_T2$Pregunta_10 == "9"] <- 1
+
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "1"] <- 6
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "2"] <- 7
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "4"] <- 8
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "5"] <- 9
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "6"] <- 5
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "7"] <- 4
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "8"] <- 2
+datos_T2$Pregunta_12[datos_T2$Pregunta_12 == "9"] <- 1
+
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "1"] <- 6
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "2"] <- 7
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "4"] <- 8
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "5"] <- 9
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "6"] <- 5
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "7"] <- 4
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "8"] <- 2
+datos_T2$Pregunta_14[datos_T2$Pregunta_14 == "9"] <- 1
+
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "1"] <- 6
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "2"] <- 7
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "4"] <- 8
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "5"] <- 9
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "6"] <- 5
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "7"] <- 4
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "8"] <- 2
+datos_T2$Pregunta_17[datos_T2$Pregunta_17 == "9"] <- 1
+
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "1"] <- 6
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "2"] <- 7
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "4"] <- 8
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "5"] <- 9
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "6"] <- 5
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "7"] <- 4
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "8"] <- 2
+datos_T2$Pregunta_21[datos_T2$Pregunta_21 == "9"] <- 1
+
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "1"] <- 6
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "2"] <- 7
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "4"] <- 8
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "5"] <- 9
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "6"] <- 5
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "7"] <- 4
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "8"] <- 2
+datos_T2$Pregunta_25[datos_T2$Pregunta_25 == "9"] <- 1
+
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "1"] <- 6
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "2"] <- 7
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "4"] <- 8
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "5"] <- 9
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "6"] <- 5
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "7"] <- 4
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "8"] <- 2
+datos_T2$Pregunta_26[datos_T2$Pregunta_26 == "9"] <- 1
+
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "1"] <- 6
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "2"] <- 7
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "4"] <- 8
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "5"] <- 9
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "6"] <- 5
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "7"] <- 4
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "8"] <- 2
+datos_T2$Pregunta_28[datos_T2$Pregunta_28 == "9"] <- 1
+
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "1"] <- 6
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "2"] <- 7
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "4"] <- 8
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "5"] <- 9
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "6"] <- 5
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "7"] <- 4
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "8"] <- 2
+datos_T2$Pregunta_30[datos_T2$Pregunta_30 == "9"] <- 1
+
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "1"] <- 6
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "2"] <- 7
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "4"] <- 8
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "5"] <- 9
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "6"] <- 5
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "7"] <- 4
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "8"] <- 2
+datos_T2$Pregunta_32[datos_T2$Pregunta_32 == "9"] <- 1
+```
+
+
+```{r echo=TRUE}
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "1"] <- 6
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "2"] <- 7
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "4"] <- 8
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "5"] <- 9
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "6"] <- 5
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "7"] <- 4
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "8"] <- 2
+datos_T3$Pregunta_3[datos_T3$Pregunta_3 == "9"] <- 1
+
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "1"] <- 6
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "2"] <- 7
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "4"] <- 8
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "5"] <- 9
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "6"] <- 5
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "7"] <- 4
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "8"] <- 2
+datos_T3$Pregunta_7[datos_T3$Pregunta_7 == "9"] <- 1
+
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "1"] <- 6
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "2"] <- 7
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "4"] <- 8
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "5"] <- 9
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "6"] <- 5
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "7"] <- 4
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "8"] <- 2
+datos_T3$Pregunta_8[datos_T3$Pregunta_8 == "9"] <- 1
+
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "1"] <- 6
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "2"] <- 7
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "4"] <- 8
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "5"] <- 9
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "6"] <- 5
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "7"] <- 4
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "8"] <- 2
+datos_T3$Pregunta_10[datos_T3$Pregunta_10 == "9"] <- 1
+
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "1"] <- 6
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "2"] <- 7
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "4"] <- 8
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "5"] <- 9
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "6"] <- 5
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "7"] <- 4
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "8"] <- 2
+datos_T3$Pregunta_12[datos_T3$Pregunta_12 == "9"] <- 1
+
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "1"] <- 6
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "2"] <- 7
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "4"] <- 8
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "5"] <- 9
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "6"] <- 5
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "7"] <- 4
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "8"] <- 2
+datos_T3$Pregunta_14[datos_T3$Pregunta_14 == "9"] <- 1
+
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "1"] <- 6
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "2"] <- 7
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "4"] <- 8
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "5"] <- 9
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "6"] <- 5
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "7"] <- 4
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "8"] <- 2
+datos_T3$Pregunta_17[datos_T3$Pregunta_17 == "9"] <- 1
+
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "1"] <- 6
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "2"] <- 7
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "4"] <- 8
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "5"] <- 9
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "6"] <- 5
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "7"] <- 4
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "8"] <- 2
+datos_T3$Pregunta_21[datos_T3$Pregunta_21 == "9"] <- 1
+
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "1"] <- 6
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "2"] <- 7
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "4"] <- 8
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "5"] <- 9
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "6"] <- 5
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "7"] <- 4
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "8"] <- 2
+datos_T3$Pregunta_25[datos_T3$Pregunta_25 == "9"] <- 1
+
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "1"] <- 6
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "2"] <- 7
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "4"] <- 8
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "5"] <- 9
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "6"] <- 5
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "7"] <- 4
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "8"] <- 2
+datos_T3$Pregunta_26[datos_T3$Pregunta_26 == "9"] <- 1
+
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "1"] <- 6
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "2"] <- 7
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "4"] <- 8
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "5"] <- 9
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "6"] <- 5
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "7"] <- 4
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "8"] <- 2
+datos_T3$Pregunta_28[datos_T3$Pregunta_28 == "9"] <- 1
+
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "1"] <- 6
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "2"] <- 7
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "4"] <- 8
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "5"] <- 9
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "6"] <- 5
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "7"] <- 4
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "8"] <- 2
+datos_T3$Pregunta_30[datos_T3$Pregunta_30 == "9"] <- 1
+
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "1"] <- 6
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "2"] <- 7
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "4"] <- 8
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "5"] <- 9
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "6"] <- 5
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "7"] <- 4
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "8"] <- 2
+datos_T3$Pregunta_32[datos_T3$Pregunta_32 == "9"] <- 1
+```
+
+Para realizar el PCA primero obtendremos un 'score' de cada individuo para cada uno de los 4 factores (Adopcion de perspectivas, estres empatico, alegria empatica y comprension emocional). 
+
+Para ello, sumaremos las respuestas obtenidas (diferenciando por factores) de cada individuo
+
+```{r echo=TRUE}
+datos_escmulti_T1 <- datos_T1 %>%
+  mutate(adopcion_perspectivas = Pregunta_6 + Pregunta_11 + Pregunta_15 + Pregunta_17 + Pregunta_20 + Pregunta_26 + Pregunta_29 + Pregunta_32,
+         
+         comprension_emocional = Pregunta_1 + Pregunta_7 + Pregunta_10 + Pregunta_13 + Pregunta_14 + Pregunta_24 + Pregunta_27 + Pregunta_31 + Pregunta_33,
+         
+         estres_empatico = Pregunta_3 + Pregunta_5 + Pregunta_8 + Pregunta_12 + Pregunta_18 + Pregunta_23 + Pregunta_28 + Pregunta_30,
+         
+         alegria_empatica = Pregunta_2 + Pregunta_4 + Pregunta_9 + Pregunta_16 + Pregunta_19 + Pregunta_21 + Pregunta_22 + Pregunta_25,
+         
+         Sociodemo = Sexo + Hijos + Edad,
+         
+         Prof_sanitario = Trabaja + Exp_ambito_sanitario) %>%
+  
+  dplyr::select(adopcion_perspectivas, comprension_emocional, estres_empatico, alegria_empatica, Sociodemo, Prof_sanitario, Universidad, Sexo)
+
+
+datos_escmulti_T2 <- datos_T2 %>%
+  mutate(adopcion_perspectivas = Pregunta_6 + Pregunta_11 + Pregunta_15 + Pregunta_17 + Pregunta_20 + Pregunta_26 + Pregunta_29 + Pregunta_32,
+         
+         comprension_emocional = Pregunta_1 + Pregunta_7 + Pregunta_10 + Pregunta_13 + Pregunta_14 + Pregunta_24 + Pregunta_27 + Pregunta_31 + Pregunta_33,
+         
+         estres_empatico = Pregunta_3 + Pregunta_5 + Pregunta_8 + Pregunta_12 + Pregunta_18 + Pregunta_23 + Pregunta_28 + Pregunta_30,
+         
+         alegria_empatica = Pregunta_2 + Pregunta_4 + Pregunta_9 + Pregunta_16 + Pregunta_19 + Pregunta_21 + Pregunta_22 + Pregunta_25,
+         
+         Sociodemo = Sexo + Hijos + Edad,
+         
+         Prof_sanitario = Trabaja + Exp_ambito_sanitario) %>%
+  
+  dplyr::select(adopcion_perspectivas, comprension_emocional, estres_empatico, alegria_empatica, Sociodemo, Prof_sanitario, Universidad, Sexo)
+
+
+datos_escmulti_T3 <- datos_T3 %>%
+  mutate(adopcion_perspectivas = Pregunta_6 + Pregunta_11 + Pregunta_15 + Pregunta_17 + Pregunta_20 + Pregunta_26 + Pregunta_29 + Pregunta_32,
+         
+         comprension_emocional = Pregunta_1 + Pregunta_7 + Pregunta_10 + Pregunta_13 + Pregunta_14 + Pregunta_24 + Pregunta_27 + Pregunta_31 + Pregunta_33,
+         
+         estres_empatico = Pregunta_3 + Pregunta_5 + Pregunta_8 + Pregunta_12 + Pregunta_18 + Pregunta_23 + Pregunta_28 + Pregunta_30,
+         
+         alegria_empatica = Pregunta_2 + Pregunta_4 + Pregunta_9 + Pregunta_16 + Pregunta_19 + Pregunta_21 + Pregunta_22 + Pregunta_25,
+         
+         Sociodemo = Sexo + Hijos + Edad,
+         
+         Prof_sanitario = Trabaja + Exp_ambito_sanitario) %>%
+  
+  dplyr::select(adopcion_perspectivas, comprension_emocional, estres_empatico, alegria_empatica, Sociodemo, Prof_sanitario, Universidad, Sexo)
+```
+
+
+```{r echo=TRUE}
+datos_escmulti_T1$Sexo[datos_escmulti_T1$Sexo == "0"] <- "H"
+datos_escmulti_T1$Sexo[datos_escmulti_T1$Sexo == "1"] <- "M"
+
+
+datos_escmulti_T2$Sexo[datos_escmulti_T2$Sexo == "0"] <- "H"
+datos_escmulti_T2$Sexo[datos_escmulti_T2$Sexo == "1"] <- "M"
+
+datos_escmulti_T3$Sexo[datos_escmulti_T3$Sexo == "0"] <- "H"
+datos_escmulti_T3$Sexo[datos_escmulti_T3$Sexo == "1"] <- "M"
+```
+
+
+
+Creamos las etiquetas
+
+
+```{r echo=TRUE}
+datos_1 <- datos_escmulti_T1[,c(7,8)]
+patrones <- apply(datos_1, 1, FUN=function(x) paste(x, collapse = "-"))
+
+datos_escmulti_T1 <- datos_escmulti_T1 %>%
+  dplyr::mutate(Label = patrones) %>%
+  dplyr::select(adopcion_perspectivas, comprension_emocional, estres_empatico, alegria_empatica, Sociodemo, Prof_sanitario, Label)
+
+
+datos_2 <- datos_escmulti_T2[,c(7,8)]
+patrones <- apply(datos_1, 1, FUN=function(x) paste(x, collapse = "-"))
+
+datos_escmulti_T2 <- datos_escmulti_T2 %>%
+  dplyr::mutate(Label = patrones) %>%
+  dplyr::select(adopcion_perspectivas, comprension_emocional, estres_empatico, alegria_empatica, Sociodemo, Prof_sanitario, Label)
+
+
+datos_3 <- datos_escmulti_T3[,c(7,8)]
+patrones <- apply(datos_1, 1, FUN=function(x) paste(x, collapse = "-"))
+
+datos_escmulti_T3 <- datos_escmulti_T3 %>%
+  dplyr::mutate(Label = patrones) %>%
+  dplyr::select(adopcion_perspectivas, comprension_emocional, estres_empatico, alegria_empatica, Sociodemo, Prof_sanitario, Label)
+```
+
+
+Calculamos las distancias de Grower
+
+
+```{r echo=TRUE}
+distancias=function(d,nombres){
+  gower.mat<- gower.dist(d)
+  fit=cmdscale(gower.mat)
+  x=fit[,1]
+  y=fit[,2]
+  fit=as.data.frame(fit)
+  colnames(fit) <- c("Dim.1", "Dim.2")
+  p=ggscatter(fit, x = "Dim.1", y = "Dim.2",  
+          label = nombres,
+          size = 1,
+          repel = TRUE) + expand_limits(x = c(-0.2,0.4), y =c(-0.2,0.4)) # customizar los ejes
+  list(fit=fit,plot=p)
+}
+
+```
+
+```{r echo=TRUE}
+p1=distancias(datos_escmulti_T1, datos_escmulti_T1$Label)$plot
+p1
+```
+
+```{r echo=TRUE}
+p2=distancias(datos_escmulti_T2, datos_escmulti_T2$Label)$plot
+p2
+```
+
+```{r echo=TRUE}
+p3=distancias(datos_escmulti_T3, datos_escmulti_T3$Label)$plot
+p3
+```
+
+```{r echo=TRUE}
+fit1 = distancias(datos_escmulti_T1, datos_escmulti_T1$Label)$fit
+fit2 = distancias(datos_escmulti_T2, datos_escmulti_T2$Label)$fit
+fit3 = distancias(datos_escmulti_T3, datos_escmulti_T3$Label)$fit
+```
+
+```{r echo=TRUE}
+clust <- kmeans(fit1, 3)$cluster %>%
+  as.factor()
+
+fit1 <- fit1 %>%
+  mutate(groups = clust)
+
+fit1_3 <- ggscatter(fit1, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit1_3
+```
+
+```{r echo=TRUE}
+clust <- kmeans(fit1, 4)$cluster %>%
+  as.factor()
+
+fit1 <- fit1 %>%
+  mutate(groups = clust)
+
+fit1_4 <- ggscatter(fit1, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit1_4
+```
+
+```{r echo=TRUE}
+clust <- kmeans(fit1, 5)$cluster %>%
+  as.factor()
+
+fit1 <- fit1 %>%
+  mutate(groups = clust)
+
+fit1_5 <- ggscatter(fit1, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit1_5
+```
+
+```{r echo=TRUE}
+clust <- kmeans(fit2, 3)$cluster %>%
+  as.factor()
+
+fit2 <- fit2 %>%
+  mutate(groups = clust)
+
+fit2_3 <- ggscatter(fit2, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit2_3
+```
+
+```{r echo=TRUE}
+clust <- kmeans(fit2, 4)$cluster %>%
+  as.factor()
+
+fit2 <- fit2 %>%
+  mutate(groups = clust)
+
+fit2_4 <- ggscatter(fit2, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit2_4
+```
+
+```{r echo=TRUE}
+clust <- kmeans(fit2, 5)$cluster %>%
+  as.factor()
+
+fit2 <- fit2 %>%
+  mutate(groups = clust)
+
+fit2_5 <- ggscatter(fit2, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit2_5
+```
+
+
+```{r echo=TRUE}
+clust <- kmeans(fit3, 3)$cluster %>%
+  as.factor()
+
+fit3 <- fit3 %>%
+  mutate(groups = clust)
+
+fit3_3 <- ggscatter(fit3, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit3_3
+```
+
+```{r echo=TRUE}
+clust <- kmeans(fit3, 4)$cluster %>%
+  as.factor()
+
+fit3 <- fit3 %>%
+  mutate(groups = clust)
+
+fit3_4 <- ggscatter(fit3, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit3_4
+```
+
+
+```{r echo=TRUE}
+clust <- kmeans(fit3, 5)$cluster %>%
+  as.factor()
+
+fit3 <- fit3 %>%
+  mutate(groups = clust)
+
+fit3_5 <- ggscatter(fit3, x = "Dim.1", y = "Dim.2",
+                     label = datos_escmulti_T1$Label,
+                     color = "groups",
+                     palette = "jco",
+                     size = 1,
+                     ellipse = TRUE,
+                     ellipse.type = "convex",
+                     repel = TRUE)
+fit3_5
+```
+
