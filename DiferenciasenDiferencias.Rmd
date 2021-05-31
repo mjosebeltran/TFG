@@ -1,0 +1,972 @@
+---
+title: "DiferenciasenDiferencias"
+author: "María José Beltrán"
+date: "11/2/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(psych)
+library(psychTools)
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(MPsychoR)
+library(lavaan)
+library(semPlot)
+library(corrplot) 
+library(BayesFM)
+```
+
+
+## Diferencias en Diferencias
+
+Grupo control: UCV
+Grupo intervención: UIB
+
+T1: sin intervención
+T2: immediatamente después de la intervención
+
+Crearemos las variables: 
+
+- Time: valdrá 0 si los datos son de T1 y 1 si los datos son de T2
+- Intervention: valdrá 0 si es el grupo control (UCV) y 1 si es el grupo intervención (UIB)
+
+```{r}
+datosValencia_T1 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", sheet = "control3_T1T2T3", range = cell_cols("AN:BT")) %>% 
+  dplyr::rename(Pregunta_1 = 'T1TECA1', Pregunta_2 = 'T1TECA2', Pregunta_3 = 'T1TECA3', Pregunta_4 = 'T1TECA4', Pregunta_5 = 'T1TECA5', Pregunta_6 = 'T1TECA6', Pregunta_7 = 'T1TECA7', Pregunta_8 = 'T1TECA8', Pregunta_9 = 'T1TECA9', Pregunta_10 = 'T1TECA10', Pregunta_11 =  'T1TECA11', Pregunta_12 = 'T1TECA12', Pregunta_13 = 'T1TECA13' , Pregunta_14 = 'T1TECA14', Pregunta_15 = 'T1TECA15', Pregunta_16 = 'T1TECA16', Pregunta_17 = 'T1TECA17',Pregunta_18 = 'T1TECA18', Pregunta_19 = 'T1TECA19', Pregunta_20 = 'T1TECA20', Pregunta_21 = 'T1TECA21',Pregunta_22 = 'T1TECA22', Pregunta_23 = 'T1TECA23',Pregunta_24 = 'T1TECA24', Pregunta_25 = 'T1TECA25', Pregunta_26 = 'T1TECA26', Pregunta_27 = 'T1TECA27', Pregunta_28 = 'T1TECA28', Pregunta_29 = 'T1TECA29', Pregunta_30 = 'T1TECA30', Pregunta_31 = 'T1TECA31', Pregunta_32 = 'T1TECA32', Pregunta_33 = 'T1TECA33')
+```
+
+```{r}
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "1"] <- 6
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "2"] <- 7
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "4"] <- 8
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "5"] <- 9
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "6"] <- 5
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "7"] <- 4
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "8"] <- 2
+datosValencia_T1$Pregunta_3[datosValencia_T1$Pregunta_3 == "9"] <- 1
+
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "1"] <- 6
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "2"] <- 7
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "4"] <- 8
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "5"] <- 9
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "6"] <- 5
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "7"] <- 4
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "8"] <- 2
+datosValencia_T1$Pregunta_7[datosValencia_T1$Pregunta_7 == "9"] <- 1
+
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "1"] <- 6
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "2"] <- 7
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "4"] <- 8
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "5"] <- 9
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "6"] <- 5
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "7"] <- 4
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "8"] <- 2
+datosValencia_T1$Pregunta_8[datosValencia_T1$Pregunta_8 == "9"] <- 1
+
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "1"] <- 6
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "2"] <- 7
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "4"] <- 8
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "5"] <- 9
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "6"] <- 5
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "7"] <- 4
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "8"] <- 2
+datosValencia_T1$Pregunta_10[datosValencia_T1$Pregunta_10 == "9"] <- 1
+
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "1"] <- 6
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "2"] <- 7
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "4"] <- 8
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "5"] <- 9
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "6"] <- 5
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "7"] <- 4
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "8"] <- 2
+datosValencia_T1$Pregunta_12[datosValencia_T1$Pregunta_12 == "9"] <- 1
+
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "1"] <- 6
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "2"] <- 7
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "4"] <- 8
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "5"] <- 9
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "6"] <- 5
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "7"] <- 4
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "8"] <- 2
+datosValencia_T1$Pregunta_14[datosValencia_T1$Pregunta_14 == "9"] <- 1
+
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "1"] <- 6
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "2"] <- 7
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "4"] <- 8
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "5"] <- 9
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "6"] <- 5
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "7"] <- 4
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "8"] <- 2
+datosValencia_T1$Pregunta_17[datosValencia_T1$Pregunta_17 == "9"] <- 1
+
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "1"] <- 6
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "2"] <- 7
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "4"] <- 8
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "5"] <- 9
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "6"] <- 5
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "7"] <- 4
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "8"] <- 2
+datosValencia_T1$Pregunta_21[datosValencia_T1$Pregunta_21 == "9"] <- 1
+
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "1"] <- 6
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "2"] <- 7
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "4"] <- 8
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "5"] <- 9
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "6"] <- 5
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "7"] <- 4
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "8"] <- 2
+datosValencia_T1$Pregunta_25[datosValencia_T1$Pregunta_25 == "9"] <- 1
+
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "1"] <- 6
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "2"] <- 7
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "4"] <- 8
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "5"] <- 9
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "6"] <- 5
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "7"] <- 4
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "8"] <- 2
+datosValencia_T1$Pregunta_26[datosValencia_T1$Pregunta_26 == "9"] <- 1
+
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "1"] <- 6
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "2"] <- 7
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "4"] <- 8
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "5"] <- 9
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "6"] <- 5
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "7"] <- 4
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "8"] <- 2
+datosValencia_T1$Pregunta_28[datosValencia_T1$Pregunta_28 == "9"] <- 1
+
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "1"] <- 6
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "2"] <- 7
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "4"] <- 8
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "5"] <- 9
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "6"] <- 5
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "7"] <- 4
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "8"] <- 2
+datosValencia_T1$Pregunta_30[datosValencia_T1$Pregunta_30 == "9"] <- 1
+
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "1"] <- 6
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "2"] <- 7
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "4"] <- 8
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "5"] <- 9
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "6"] <- 5
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "7"] <- 4
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "8"] <- 2
+datosValencia_T1$Pregunta_32[datosValencia_T1$Pregunta_32 == "9"] <- 1
+```
+
+```{r}
+datosValencia_T1 <- data.frame(sapply(datosValencia_T1, function(x) as.numeric(as.character(x))))
+```
+
+
+```{r}
+#Time: valdrá 0 si los datos son de T1 y 1 si los datos son de T2
+#Intervention: valdrá 0 si es el grupo control (UCV) y 1 si es el grupo intervención (UIB)
+
+#UCV en T1
+Time <- sample(rep(0,34))
+Intervention <-sample(rep(0,34))
+
+datosValencia_T1 <- cbind(datosValencia_T1, Time)
+datosValencia_T1 <- cbind(datosValencia_T1, Intervention)
+```
+
+
+```{r}
+datosValencia_T1_score <- datosValencia_T1 %>% 
+  dplyr::mutate(score = Pregunta_1 + Pregunta_2 + Pregunta_3 + Pregunta_4 + Pregunta_5 + Pregunta_6 + Pregunta_7 + Pregunta_8 + Pregunta_9 + Pregunta_10 + Pregunta_11 + Pregunta_12 + Pregunta_13 + Pregunta_14 + Pregunta_15 + Pregunta_16 + Pregunta_17 + Pregunta_18 + Pregunta_19 + Pregunta_20 + Pregunta_21 + Pregunta_22 + Pregunta_23 + Pregunta_24 + Pregunta_25 + Pregunta_26 + Pregunta_27 + Pregunta_28 + Pregunta_29 + Pregunta_30 + Pregunta_31 + Pregunta_32 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, score)
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+datosUIB_T1 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", sheet = "EII_int_T1T2T3", range = cell_cols("AN:BT")) %>% 
+  dplyr::rename(Pregunta_1 = '1TECA1', Pregunta_2 = '1TECA2', Pregunta_3 = '1TECA3',Pregunta_4 = '1TECA4', Pregunta_5 = '1TECA5', Pregunta_6 = '1TECA6', Pregunta_7 = '1TECA7', Pregunta_8 = '1TECA8', Pregunta_9 = '1TECA9', Pregunta_10 = '1TECA10', Pregunta_11 =  '1TECA11', Pregunta_12 = '1TECA12', Pregunta_13 = '1TECA13', Pregunta_14 = '1TECA14', Pregunta_15 = '1TECA15', Pregunta_16 = '1TECA16', Pregunta_17 = '1TECA17',Pregunta_18 = '1TECA18', Pregunta_19 = '1TECA19', Pregunta_20 = '1TECA20', Pregunta_21 = '1TECA21',Pregunta_22 = '1TECA22', Pregunta_23 = '1TECA23',Pregunta_24 = '1TECA24', Pregunta_25 = '1TECA25', Pregunta_26 = '1TECA26', Pregunta_27 = '1TECA27', Pregunta_28 = '1TECA28', Pregunta_29 = '1TECA29', Pregunta_30 = '1TECA30', Pregunta_31 = '1TECA31', Pregunta_32 = '1TECA32', Pregunta_33 = '1TECA33')
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "1"] <- 6
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "2"] <- 7
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "4"] <- 8
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "5"] <- 9
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "6"] <- 5
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "7"] <- 4
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "8"] <- 2
+datosUIB_T1$Pregunta_3[datosUIB_T1$Pregunta_3 == "9"] <- 1
+
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "1"] <- 6
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "2"] <- 7
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "4"] <- 8
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "5"] <- 9
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "6"] <- 5
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "7"] <- 4
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "8"] <- 2
+datosUIB_T1$Pregunta_7[datosUIB_T1$Pregunta_7 == "9"] <- 1
+
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "1"] <- 6
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "2"] <- 7
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "4"] <- 8
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "5"] <- 9
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "6"] <- 5
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "7"] <- 4
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "8"] <- 2
+datosUIB_T1$Pregunta_8[datosUIB_T1$Pregunta_8 == "9"] <- 1
+
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "1"] <- 6
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "2"] <- 7
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "4"] <- 8
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "5"] <- 9
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "6"] <- 5
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "7"] <- 4
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "8"] <- 2
+datosUIB_T1$Pregunta_10[datosUIB_T1$Pregunta_10 == "9"] <- 1
+
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "1"] <- 6
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "2"] <- 7
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "4"] <- 8
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "5"] <- 9
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "6"] <- 5
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "7"] <- 4
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "8"] <- 2
+datosUIB_T1$Pregunta_12[datosUIB_T1$Pregunta_12 == "9"] <- 1
+
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "1"] <- 6
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "2"] <- 7
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "4"] <- 8
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "5"] <- 9
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "6"] <- 5
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "7"] <- 4
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "8"] <- 2
+datosUIB_T1$Pregunta_14[datosUIB_T1$Pregunta_14 == "9"] <- 1
+
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "1"] <- 6
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "2"] <- 7
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "4"] <- 8
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "5"] <- 9
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "6"] <- 5
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "7"] <- 4
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "8"] <- 2
+datosUIB_T1$Pregunta_17[datosUIB_T1$Pregunta_17 == "9"] <- 1
+
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "1"] <- 6
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "2"] <- 7
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "4"] <- 8
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "5"] <- 9
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "6"] <- 5
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "7"] <- 4
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "8"] <- 2
+datosUIB_T1$Pregunta_21[datosUIB_T1$Pregunta_21 == "9"] <- 1
+
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "1"] <- 6
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "2"] <- 7
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "4"] <- 8
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "5"] <- 9
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "6"] <- 5
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "7"] <- 4
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "8"] <- 2
+datosUIB_T1$Pregunta_25[datosUIB_T1$Pregunta_25 == "9"] <- 1
+
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "1"] <- 6
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "2"] <- 7
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "4"] <- 8
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "5"] <- 9
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "6"] <- 5
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "7"] <- 4
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "8"] <- 2
+datosUIB_T1$Pregunta_26[datosUIB_T1$Pregunta_26 == "9"] <- 1
+
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "1"] <- 6
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "2"] <- 7
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "4"] <- 8
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "5"] <- 9
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "6"] <- 5
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "7"] <- 4
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "8"] <- 2
+datosUIB_T1$Pregunta_28[datosUIB_T1$Pregunta_28 == "9"] <- 1
+
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "1"] <- 6
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "2"] <- 7
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "4"] <- 8
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "5"] <- 9
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "6"] <- 5
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "7"] <- 4
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "8"] <- 2
+datosUIB_T1$Pregunta_30[datosUIB_T1$Pregunta_30 == "9"] <- 1
+
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "1"] <- 6
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "2"] <- 7
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "4"] <- 8
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "5"] <- 9
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "6"] <- 5
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "7"] <- 4
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "8"] <- 2
+datosUIB_T1$Pregunta_32[datosUIB_T1$Pregunta_32 == "9"] <- 1
+```
+
+```{r}
+datosUIB_T1 <- data.frame(sapply(datosUIB_T1, function(x) as.numeric(as.character(x))))
+```
+
+
+## GLOBAL
+
+```{r}
+#Time: valdrá 0 si los datos son de T1 y 1 si los datos son de T2
+#Intervention: valdrá 0 si es el grupo control (UCV) y 1 si es el grupo intervención (UIB)
+
+#UIB en T1
+Time <- sample(rep(0,51))
+Intervention <-sample(rep(1,51))
+
+datosUIB_T1 <- cbind(datosUIB_T1, Time)
+datosUIB_T1 <- cbind(datosUIB_T1, Intervention)
+```
+
+```{r}
+datosUIB_T1_score <- datosUIB_T1 %>% 
+  dplyr::mutate(score = Pregunta_1 + Pregunta_2 + Pregunta_3 + Pregunta_4 + Pregunta_5 + Pregunta_6 + Pregunta_7 + Pregunta_8 + Pregunta_9 + Pregunta_10 + Pregunta_11 + Pregunta_12 + Pregunta_13 + Pregunta_14 + Pregunta_15 + Pregunta_16 + Pregunta_17 + Pregunta_18 + Pregunta_19 + Pregunta_20 + Pregunta_21 + Pregunta_22 + Pregunta_23 + Pregunta_24 + Pregunta_25 + Pregunta_26 + Pregunta_27 + Pregunta_28 + Pregunta_29 + Pregunta_30 + Pregunta_31 + Pregunta_32 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, score)
+```
+
+
+```{r}
+datosValencia_T2 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_control3_T1T2T3_4codificado-1.xlsx", sheet = "control3_T1T2T3", range = cell_cols("CS:DY")) %>% 
+  dplyr::rename(Pregunta_1 = 'T2TECA1', Pregunta_2 = 'T2TECA2', Pregunta_3 = 'T2TECA3',Pregunta_4 = 'T2TECA4', Pregunta_5 = 'T2TECA5', Pregunta_6 = 'T2TECA6', Pregunta_7 = 'T2TECA7', Pregunta_8 = 'T2TECA8', Pregunta_9 = 'T2TECA9', Pregunta_10 = 'T2TECA10', Pregunta_11 =  'T2TECA11', Pregunta_12 = 'T2TECA12', Pregunta_13 = 'T2TECA13', Pregunta_14 = 'T2TECA14', Pregunta_15 = 'T2TECA15', Pregunta_16 = 'T2TECA16', Pregunta_17 = 'T2TECA17',Pregunta_18 = 'T2TECA18', Pregunta_19 = 'T2TECA19', Pregunta_20 = 'T2TECA20', Pregunta_21 = 'T2TECA21',Pregunta_22 = 'T2TECA22', Pregunta_23 = 'T2TECA23',Pregunta_24 = 'T2TECA24', Pregunta_25 = 'T2TECA25', Pregunta_26 = 'T2TECA26', Pregunta_27 = 'T2TECA27', Pregunta_28 = 'T2TECA28', Pregunta_29 = 'T2TECA29', Pregunta_30 = 'T2TECA30', Pregunta_31 = 'T2TECA31', Pregunta_32 = 'T2TECA32', Pregunta_33 = 'T2TECA33')
+```
+
+```{r include=FALSE}
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "1"] <- 6
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "2"] <- 7
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "4"] <- 8
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "5"] <- 9
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "6"] <- 5
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "7"] <- 4
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "8"] <- 2
+datosValencia_T2$Pregunta_3[datosValencia_T2$Pregunta_3 == "9"] <- 1
+
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "1"] <- 6
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "2"] <- 7
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "4"] <- 8
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "5"] <- 9
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "6"] <- 5
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "7"] <- 4
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "8"] <- 2
+datosValencia_T2$Pregunta_7[datosValencia_T2$Pregunta_7 == "9"] <- 1
+
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "1"] <- 6
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "2"] <- 7
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "4"] <- 8
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "5"] <- 9
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "6"] <- 5
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "7"] <- 4
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "8"] <- 2
+datosValencia_T2$Pregunta_8[datosValencia_T2$Pregunta_8 == "9"] <- 1
+
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "1"] <- 6
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "2"] <- 7
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "4"] <- 8
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "5"] <- 9
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "6"] <- 5
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "7"] <- 4
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "8"] <- 2
+datosValencia_T2$Pregunta_10[datosValencia_T2$Pregunta_10 == "9"] <- 1
+
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "1"] <- 6
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "2"] <- 7
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "4"] <- 8
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "5"] <- 9
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "6"] <- 5
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "7"] <- 4
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "8"] <- 2
+datosValencia_T2$Pregunta_12[datosValencia_T2$Pregunta_12 == "9"] <- 1
+
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "1"] <- 6
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "2"] <- 7
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "4"] <- 8
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "5"] <- 9
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "6"] <- 5
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "7"] <- 4
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "8"] <- 2
+datosValencia_T2$Pregunta_14[datosValencia_T2$Pregunta_14 == "9"] <- 1
+
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "1"] <- 6
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "2"] <- 7
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "4"] <- 8
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "5"] <- 9
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "6"] <- 5
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "7"] <- 4
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "8"] <- 2
+datosValencia_T2$Pregunta_17[datosValencia_T2$Pregunta_17 == "9"] <- 1
+
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "1"] <- 6
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "2"] <- 7
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "4"] <- 8
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "5"] <- 9
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "6"] <- 5
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "7"] <- 4
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "8"] <- 2
+datosValencia_T2$Pregunta_21[datosValencia_T2$Pregunta_21 == "9"] <- 1
+
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "1"] <- 6
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "2"] <- 7
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "4"] <- 8
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "5"] <- 9
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "6"] <- 5
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "7"] <- 4
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "8"] <- 2
+datosValencia_T2$Pregunta_25[datosValencia_T2$Pregunta_25 == "9"] <- 1
+
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "1"] <- 6
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "2"] <- 7
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "4"] <- 8
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "5"] <- 9
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "6"] <- 5
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "7"] <- 4
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "8"] <- 2
+datosValencia_T2$Pregunta_26[datosValencia_T2$Pregunta_26 == "9"] <- 1
+
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "1"] <- 6
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "2"] <- 7
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "4"] <- 8
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "5"] <- 9
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "6"] <- 5
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "7"] <- 4
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "8"] <- 2
+datosValencia_T2$Pregunta_28[datosValencia_T2$Pregunta_28 == "9"] <- 1
+
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "1"] <- 6
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "2"] <- 7
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "4"] <- 8
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "5"] <- 9
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "6"] <- 5
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "7"] <- 4
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "8"] <- 2
+datosValencia_T2$Pregunta_30[datosValencia_T2$Pregunta_30 == "9"] <- 1
+
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "1"] <- 6
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "2"] <- 7
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "4"] <- 8
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "5"] <- 9
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "6"] <- 5
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "7"] <- 4
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "8"] <- 2
+datosValencia_T2$Pregunta_32[datosValencia_T2$Pregunta_32 == "9"] <- 1
+```
+
+
+```{r}
+datosValencia_T2 <- data.frame(sapply(datosValencia_T2, function(x) as.numeric(as.character(x))))
+```
+
+
+```{r}
+#Time: valdrá 0 si los datos son de T1 y 1 si los datos son de T2
+#Intervention: valdrá 0 si es el grupo control (UCV) y 1 si es el grupo intervención (UIB)
+
+#UCV en T2
+Time <- sample(rep(1,34))
+Intervention <-sample(rep(0,34))
+
+datosValencia_T2 <- cbind(datosValencia_T2, Time)
+datosValencia_T2 <- cbind(datosValencia_T2, Intervention)
+```
+
+```{r}
+datosValencia_T2_score <- datosValencia_T2 %>% 
+  dplyr::mutate(score = Pregunta_1 + Pregunta_2 + Pregunta_3 + Pregunta_4 + Pregunta_5 + Pregunta_6 + Pregunta_7 + Pregunta_8 + Pregunta_9 + Pregunta_10 + Pregunta_11 + Pregunta_12 + Pregunta_13 + Pregunta_14 + Pregunta_15 + Pregunta_16 + Pregunta_17 + Pregunta_18 + Pregunta_19 + Pregunta_20 + Pregunta_21 + Pregunta_22 + Pregunta_23 + Pregunta_24 + Pregunta_25 + Pregunta_26 + Pregunta_27 + Pregunta_28 + Pregunta_29 + Pregunta_30 + Pregunta_31 + Pregunta_32 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, score)
+```
+
+
+```{r}
+datosUIB_T2 <- read_excel("/Users/MariaJose/Desktop/TFG/Encuesta/PID_E_II_int4_T1T2T3_prog_intensivo_4codificado.xlsx", sheet = "EII_int_T1T2T3", range = cell_cols("DI:EO"))  %>%
+  dplyr::rename(Pregunta_1 = '1TECA141', Pregunta_2 = '1TECA242', Pregunta_3 = '1TECA343', Pregunta_4 = '1TECA444', Pregunta_5 = '1TECA545',Pregunta_6 =  '1TECA646', Pregunta_7 = '1TECA747', Pregunta_8 = '1TECA848',Pregunta_9 = '1TECA949', Pregunta_10 = '1TECA1050',Pregunta_11 =  '1TECA1151', Pregunta_12 = '1TECA1252', Pregunta_13 = '1TECA1353', Pregunta_14 = '1TECA1454', Pregunta_15 = '1TECA1555', Pregunta_16 = '1TECA1656', Pregunta_17 = '1TECA1757', Pregunta_18 = '1TECA1858', Pregunta_19 = '1TECA1959', Pregunta_20 = '1TECA2060', Pregunta_21 = '1TECA2161',Pregunta_22 =  '1TECA2262', Pregunta_23 = '1TECA2363', Pregunta_24 = '1TECA2464', Pregunta_25 = '1TECA2565', Pregunta_26 = '1TECA2666', Pregunta_27 = '1TECA2767', Pregunta_28 = '1TECA2868', Pregunta_29 = '1TECA2969',Pregunta_30 =  '1TECA3070', Pregunta_31= '1TECA3171', Pregunta_32 = '1TECA3272', Pregunta_33 = '1TECA3373')
+```
+
+```{r include=FALSE}
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "1"] <- 6
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "2"] <- 7
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "4"] <- 8
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "5"] <- 9
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "6"] <- 5
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "7"] <- 4
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "8"] <- 2
+datosUIB_T2$Pregunta_3[datosUIB_T2$Pregunta_3 == "9"] <- 1
+
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "1"] <- 6
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "2"] <- 7
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "4"] <- 8
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "5"] <- 9
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "6"] <- 5
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "7"] <- 4
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "8"] <- 2
+datosUIB_T2$Pregunta_7[datosUIB_T2$Pregunta_7 == "9"] <- 1
+
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "1"] <- 6
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "2"] <- 7
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "4"] <- 8
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "5"] <- 9
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "6"] <- 5
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "7"] <- 4
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "8"] <- 2
+datosUIB_T2$Pregunta_8[datosUIB_T2$Pregunta_8 == "9"] <- 1
+
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "1"] <- 6
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "2"] <- 7
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "4"] <- 8
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "5"] <- 9
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "6"] <- 5
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "7"] <- 4
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "8"] <- 2
+datosUIB_T2$Pregunta_10[datosUIB_T2$Pregunta_10 == "9"] <- 1
+
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "1"] <- 6
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "2"] <- 7
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "4"] <- 8
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "5"] <- 9
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "6"] <- 5
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "7"] <- 4
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "8"] <- 2
+datosUIB_T2$Pregunta_12[datosUIB_T2$Pregunta_12 == "9"] <- 1
+
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "1"] <- 6
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "2"] <- 7
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "4"] <- 8
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "5"] <- 9
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "6"] <- 5
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "7"] <- 4
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "8"] <- 2
+datosUIB_T2$Pregunta_14[datosUIB_T2$Pregunta_14 == "9"] <- 1
+
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "1"] <- 6
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "2"] <- 7
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "4"] <- 8
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "5"] <- 9
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "6"] <- 5
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "7"] <- 4
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "8"] <- 2
+datosUIB_T2$Pregunta_17[datosUIB_T2$Pregunta_17 == "9"] <- 1
+
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "1"] <- 6
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "2"] <- 7
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "4"] <- 8
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "5"] <- 9
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "6"] <- 5
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "7"] <- 4
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "8"] <- 2
+datosUIB_T2$Pregunta_21[datosUIB_T2$Pregunta_21 == "9"] <- 1
+
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "1"] <- 6
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "2"] <- 7
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "4"] <- 8
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "5"] <- 9
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "6"] <- 5
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "7"] <- 4
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "8"] <- 2
+datosUIB_T2$Pregunta_25[datosUIB_T2$Pregunta_25 == "9"] <- 1
+
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "1"] <- 6
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "2"] <- 7
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "4"] <- 8
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "5"] <- 9
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "6"] <- 5
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "7"] <- 4
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "8"] <- 2
+datosUIB_T2$Pregunta_26[datosUIB_T2$Pregunta_26 == "9"] <- 1
+
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "1"] <- 6
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "2"] <- 7
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "4"] <- 8
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "5"] <- 9
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "6"] <- 5
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "7"] <- 4
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "8"] <- 2
+datosUIB_T2$Pregunta_28[datosUIB_T2$Pregunta_28 == "9"] <- 1
+
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "1"] <- 6
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "2"] <- 7
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "4"] <- 8
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "5"] <- 9
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "6"] <- 5
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "7"] <- 4
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "8"] <- 2
+datosUIB_T2$Pregunta_30[datosUIB_T2$Pregunta_30 == "9"] <- 1
+
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "1"] <- 6
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "2"] <- 7
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "4"] <- 8
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "5"] <- 9
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "6"] <- 5
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "7"] <- 4
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "8"] <- 2
+datosUIB_T2$Pregunta_32[datosUIB_T2$Pregunta_32 == "9"] <- 1
+```
+
+
+```{r}
+datosUIB_T2 <- data.frame(sapply(datosUIB_T2, function(x) as.numeric(as.character(x))))
+```
+
+
+```{r}
+#Time: valdrá 0 si los datos son de T1 y 1 si los datos son de T2
+#Intervention: valdrá 0 si es el grupo control (UCV) y 1 si es el grupo intervención (UIB)
+
+#UIB en T2
+Time <- sample(rep(1,51))
+Intervention <-sample(rep(1,51))
+
+datosUIB_T2 <- cbind(datosUIB_T2, Time)
+datosUIB_T2 <- cbind(datosUIB_T2, Intervention)
+```
+
+
+
+```{r}
+datosUIB_T2_score <- datosUIB_T2 %>% 
+  dplyr::mutate(score = Pregunta_1 + Pregunta_2 + Pregunta_3 + Pregunta_4 + Pregunta_5 + Pregunta_6 + Pregunta_7 + Pregunta_8 + Pregunta_9 + Pregunta_10 + Pregunta_11 + Pregunta_12 + Pregunta_13 + Pregunta_14 + Pregunta_15 + Pregunta_16 + Pregunta_17 + Pregunta_18 + Pregunta_19 + Pregunta_20 + Pregunta_21 + Pregunta_22 + Pregunta_23 + Pregunta_24 + Pregunta_25 + Pregunta_26 + Pregunta_27 + Pregunta_28 + Pregunta_29 + Pregunta_30 + Pregunta_31 + Pregunta_32 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, score)
+```
+
+```{r}
+datosUIB_T2_score$score[datosUIB_T2_score$score == "0"] <- NA
+datosUIB_T2_score <- na.omit(datosUIB_T2_score)
+
+datosValencia_T2_score$score[datosValencia_T2_score$score == "0"] <- NA
+datosValencia_T2_score <- na.omit(datosValencia_T2_score)
+```
+
+
+```{r}
+#Estimación sin regresión
+mean_TA = mean(datosUIB_T2_score$score, na.rm = TRUE)
+mean_CA = mean(datosValencia_T2_score$score, na.rm = TRUE)
+mean_TB = mean(datosUIB_T1_score$score, na.rm = TRUE)
+mean_CB = mean(datosValencia_T1_score$score, na.rm = TRUE)
+did = (mean_TA - mean_CA) - (mean_TB - mean_CB)
+did
+```
+
+Según este cálculo, el efecto de la intervención sobre el grupo de tratamiento sería un aumento de 27.19167 unidades en la variable de interés o resultado
+
+```{r}
+T1 <- rbind(datosValencia_T1_score, datosUIB_T1_score)
+T2 <- rbind(datosValencia_T2_score, datosUIB_T2_score)
+
+T2$score[T2$score == "0"] <- NA
+T2 <- na.omit(T2)
+```
+
+```{r}
+data <- rbind(T1, T2)
+```
+
+
+```{r}
+data <- data %>% mutate(DiD=Time*Intervention) #Interaction term
+```
+
+
+```{r}
+model=lm(score~(Time+Intervention+DiD),data=data)
+summary(model)
+```
+
+Según este cálculo, el tratamiento tiene un efecto negativo (ya que el estimador DiD ha salido -6.583)
+
+
+## Por factores 
+
+
+## AP
+
+
+```{r}
+datosValencia_T1_AP <- datosValencia_T1 %>% 
+  dplyr::mutate(AP = Pregunta_6 + Pregunta_11 + Pregunta_15 + Pregunta_17 + Pregunta_20 + Pregunta_26 + Pregunta_29 + Pregunta_32) %>%
+  dplyr::select(Time, Intervention, AP)
+```
+
+
+```{r}
+datosUIB_T1_AP <- datosUIB_T1 %>% 
+  dplyr::mutate(AP = Pregunta_6 + Pregunta_11 + Pregunta_15 + Pregunta_17 + Pregunta_20 + Pregunta_26 + Pregunta_29 + Pregunta_32) %>%
+  dplyr::select(Time, Intervention, AP)
+```
+
+
+```{r}
+datosValencia_T2_AP <- datosValencia_T2 %>% 
+  dplyr::mutate(AP = Pregunta_6 + Pregunta_11 + Pregunta_15 + Pregunta_17 + Pregunta_20 + Pregunta_26 + Pregunta_29 + Pregunta_32) %>%
+  dplyr::select(Time, Intervention, AP)
+```
+
+
+```{r}
+datosUIB_T2_AP <- datosUIB_T2 %>% 
+  dplyr::mutate(AP = Pregunta_6 + Pregunta_11 + Pregunta_15 + Pregunta_17 + Pregunta_20 + Pregunta_26 + Pregunta_29 + Pregunta_32) %>%
+  dplyr::select(Time, Intervention, AP)
+```
+
+```{r}
+datosUIB_T2_AP$AP[datosUIB_T2_AP$AP == "0"] <- NA
+datosUIB_T2_AP <- na.omit(datosUIB_T2_AP)
+
+datosValencia_T2_AP$AP[datosValencia_T2_AP$AP == "0"] <- NA
+datosValencia_T2_AP <- na.omit(datosValencia_T2_AP)
+```
+
+
+```{r}
+#Estimación sin regresión
+mean_TA = mean(datosUIB_T2_AP$AP, na.rm = TRUE)
+mean_CA = mean(datosValencia_T2_AP$AP, na.rm = TRUE)
+mean_TB = mean(datosUIB_T1_AP$AP, na.rm = TRUE)
+mean_CB = mean(datosValencia_T1_AP$AP, na.rm = TRUE)
+did = (mean_TA - mean_CA) - (mean_TB - mean_CB)
+did
+```
+
+
+```{r}
+T1 <- rbind(datosValencia_T1_AP, datosUIB_T1_AP)
+T2 <- rbind(datosValencia_T2_AP, datosUIB_T2_AP)
+```
+
+```{r}
+data <- rbind(T1, T2)
+```
+
+
+```{r}
+data <- data %>% mutate(DiD=Time*Intervention) #Interaction term
+```
+
+
+```{r}
+model=lm(AP~(Time+Intervention+DiD),data=data)
+summary(model)
+```
+
+
+
+## CE
+
+```{r}
+datosValencia_T1_CE <- datosValencia_T1 %>% 
+  dplyr::mutate(CE = Pregunta_1 + Pregunta_7 + Pregunta_10 + Pregunta_13 + Pregunta_14 + Pregunta_24 + Pregunta_27 + Pregunta_31 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, CE)
+```
+
+
+```{r}
+datosUIB_T1_CE <- datosUIB_T1 %>% 
+  dplyr::mutate(CE = Pregunta_1 + Pregunta_7 + Pregunta_10 + Pregunta_13 + Pregunta_14 + Pregunta_24 + Pregunta_27 + Pregunta_31 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, CE)
+```
+
+
+```{r}
+datosValencia_T2_CE <- datosValencia_T2 %>% 
+  dplyr::mutate(CE = Pregunta_1 + Pregunta_7 + Pregunta_10 + Pregunta_13 + Pregunta_14 + Pregunta_24 + Pregunta_27 + Pregunta_31 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, CE)
+```
+
+
+```{r}
+datosUIB_T2_CE <- datosUIB_T2 %>% 
+  dplyr::mutate(CE = Pregunta_1 + Pregunta_7 + Pregunta_10 + Pregunta_13 + Pregunta_14 + Pregunta_24 + Pregunta_27 + Pregunta_31 + Pregunta_33) %>%
+  dplyr::select(Time, Intervention, CE)
+```
+
+```{r}
+datosUIB_T2_CE$CE[datosUIB_T2_CE$CE == "0"] <- NA
+datosUIB_T2_CE <- na.omit(datosUIB_T2_CE)
+
+datosValencia_T2_CE$CE[datosValencia_T2_CE$CE == "0"] <- NA
+datosValencia_T2_CE <- na.omit(datosValencia_T2_CE)
+```
+
+
+```{r}
+#Estimación sin regresión
+mean_TA = mean(datosUIB_T2_CE$CE, na.rm = TRUE)
+mean_CA = mean(datosValencia_T2_CE$CE, na.rm = TRUE)
+mean_TB = mean(datosUIB_T1_CE$CE, na.rm = TRUE)
+mean_CB = mean(datosValencia_T1_CE$CE, na.rm = TRUE)
+did = (mean_TA - mean_CA) - (mean_TB - mean_CB)
+did
+```
+
+
+```{r}
+T1 <- rbind(datosValencia_T1_CE, datosUIB_T1_CE)
+T2 <- rbind(datosValencia_T2_CE, datosUIB_T2_CE)
+```
+
+```{r}
+data <- rbind(T1, T2)
+```
+
+
+```{r}
+data <- data %>% mutate(DiD=Time*Intervention) #Interaction term
+```
+
+
+```{r}
+model=lm(CE~(Time+Intervention+DiD),data=data)
+summary(model)
+```
+
+
+
+## EE
+
+
+```{r}
+datosValencia_T1_EE <- datosValencia_T1 %>% 
+  dplyr::mutate(EE = Pregunta_3 + Pregunta_5 + Pregunta_8 + Pregunta_12 + Pregunta_18 + Pregunta_23 + Pregunta_28 + Pregunta_30) %>%
+  dplyr::select(Time, Intervention, EE)
+```
+
+
+```{r}
+datosUIB_T1_EE <- datosUIB_T1 %>% 
+  dplyr::mutate(EE = Pregunta_3 + Pregunta_5 + Pregunta_8 + Pregunta_12 + Pregunta_18 + Pregunta_23 + Pregunta_28 + Pregunta_30) %>%
+  dplyr::select(Time, Intervention, EE)
+```
+
+
+```{r}
+datosValencia_T2_EE <- datosValencia_T2 %>% 
+  dplyr::mutate(EE = Pregunta_3 + Pregunta_5 + Pregunta_8 + Pregunta_12 + Pregunta_18 + Pregunta_23 + Pregunta_28 + Pregunta_30) %>%
+  dplyr::select(Time, Intervention, EE)
+```
+
+
+```{r}
+datosUIB_T2_EE <- datosUIB_T2 %>% 
+  dplyr::mutate(EE = Pregunta_3 + Pregunta_5 + Pregunta_8 + Pregunta_12 + Pregunta_18 + Pregunta_23 + Pregunta_28 + Pregunta_30) %>%
+  dplyr::select(Time, Intervention, EE)
+```
+
+```{r}
+datosUIB_T2_EE$EE[datosUIB_T2_EE$EE == "0"] <- NA
+datosUIB_T2_EE <- na.omit(datosUIB_T2_EE)
+
+datosValencia_T2_EE$EE[datosValencia_T2_EE$EE == "0"] <- NA
+datosValencia_T2_EE <- na.omit(datosValencia_T2_EE)
+```
+
+
+```{r}
+#Estimación sin regresión
+mean_TA = mean(datosUIB_T2_EE$EE, na.rm = TRUE)
+mean_CA = mean(datosValencia_T2_EE$EE, na.rm = TRUE)
+mean_TB = mean(datosUIB_T1_EE$EE, na.rm = TRUE)
+mean_CB = mean(datosValencia_T1_EE$EE, na.rm = TRUE)
+did = (mean_TA - mean_CA) - (mean_TB - mean_CB)
+did
+```
+
+
+```{r}
+T1 <- rbind(datosValencia_T1_EE, datosUIB_T1_EE)
+T2 <- rbind(datosValencia_T2_EE, datosUIB_T2_EE)
+```
+
+```{r}
+data <- rbind(T1, T2)
+```
+
+
+```{r}
+data <- data %>% mutate(DiD=Time*Intervention) #Interaction term
+```
+
+
+```{r}
+model=lm(EE~(Time+Intervention+DiD),data=data)
+summary(model)
+```
+
+
+
+## AE
+
+```{r}
+datosValencia_T1_AE <- datosValencia_T1 %>% 
+  dplyr::mutate(AE = Pregunta_2 + Pregunta_4 + Pregunta_9 + Pregunta_16 + Pregunta_19 + Pregunta_21 + Pregunta_22 + Pregunta_25) %>%
+  dplyr::select(Time, Intervention, AE)
+```
+
+
+```{r}
+datosUIB_T1_AE <- datosUIB_T1 %>% 
+  dplyr::mutate(AE = Pregunta_2 + Pregunta_4 + Pregunta_9 + Pregunta_16 + Pregunta_19 + Pregunta_21 + Pregunta_22 + Pregunta_25) %>%
+  dplyr::select(Time, Intervention, AE)
+```
+
+
+```{r}
+datosValencia_T2_AE <- datosValencia_T2 %>% 
+  dplyr::mutate(AE = Pregunta_2 + Pregunta_4 + Pregunta_9 + Pregunta_16 + Pregunta_19 + Pregunta_21 + Pregunta_22 + Pregunta_25) %>%
+  dplyr::select(Time, Intervention, AE)
+```
+
+
+```{r}
+datosUIB_T2_AE <- datosUIB_T2 %>% 
+  dplyr::mutate(AE = Pregunta_2 + Pregunta_4 + Pregunta_9 + Pregunta_16 + Pregunta_19 + Pregunta_21 + Pregunta_22 + Pregunta_25) %>%
+  dplyr::select(Time, Intervention, AE)
+```
+
+
+```{r}
+datosUIB_T2_AE$AE[datosUIB_T2_AE$AE == "0"] <- NA
+datosUIB_T2_AE <- na.omit(datosUIB_T2_AE)
+
+datosValencia_T2_AE$AE[datosValencia_T2_AE$AE == "0"] <- NA
+datosValencia_T2_AE <- na.omit(datosValencia_T2_AE)
+```
+
+
+```{r}
+#Estimación sin regresión
+mean_TA = mean(datosUIB_T2_AE$AE, na.rm = TRUE)
+mean_CA = mean(datosValencia_T2_AE$AE, na.rm = TRUE)
+mean_TB = mean(datosUIB_T1_AE$AE, na.rm = TRUE)
+mean_CB = mean(datosValencia_T1_AE$AE, na.rm = TRUE)
+did = (mean_TA - mean_CA) - (mean_TB - mean_CB)
+did
+```
+
+
+```{r}
+T1 <- rbind(datosValencia_T1_AE, datosUIB_T1_AE)
+T2 <- rbind(datosValencia_T2_AE, datosUIB_T2_AE)
+```
+
+```{r}
+data <- rbind(T1, T2)
+```
+
+
+```{r}
+data <- data %>% mutate(DiD=Time*Intervention) #Interaction term
+```
+
+
+```{r}
+model=lm(AE~(Time+Intervention+DiD),data=data)
+summary(model)
+```
